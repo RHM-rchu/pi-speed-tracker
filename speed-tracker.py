@@ -1,6 +1,5 @@
-# python3 speed-tracker.py -ulx 365 -uly 460 -lrx 865 -lry 600
-#
-# clear && rm data/*.csv && rm media/images/*.jpg && python speed-tracker.py -ulx 365 -uly 460 -lrx 865 -lry 600
+#!/usr/bin/env ptython3
+
 # import the necessary packages
 from picamera.array import PiRGBArray
 from picamera import PiCamera
@@ -12,16 +11,17 @@ import argparse
 import os, sys
 import sqlite3
 
-logfile = open(LOG_FILE_WEB,'w', 1)
-sys.stdout = logfile
-sys.stdin = logfile
-sys.stderr = logfile
 
 #-----------------------------------------
 # shared configs and functions
 #-----------------------------------------
 from _configs import *
 from _sqlite3_functions import *
+
+logfile = open(LOG_FILE,'w', 1)
+sys.stdout = logfile
+sys.stdin = logfile
+sys.stderr = logfile
 
 cvGreen = (0, 255, 0)
 cvBlack = (0, 0, 0)
