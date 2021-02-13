@@ -1,0 +1,65 @@
+<table class="paleBlueRows list">
+    <thead>
+        <tr>
+            <th>The CAM ${'is [RUNNING]' if int(sp_tracker_running) > 0 else 'has [STOPPED]'}
+                <a href="/status?cam=${'stop' if int(sp_tracker_running) > 0 else 'start'}" id="cam-toggle-link">
+                    <div class="container">
+                        <div class="toggle-btn ${'active' if int(sp_tracker_running) > 0 else ''} ">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </a>
+            </th>
+            <th><img src="/html/assets/cam.png"></th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th colspan="2">${total} so far today, last ${web_statuspage_limit} below</th>
+        </tr>
+        <tr>
+            <th>Time</th>
+            <th>Speed</th>
+        </tr>
+    </thead>
+    % for row in latest_records:
+    <tr>
+        <td>
+            ${row['date_full']}
+            <img src="${row['image_path']}"><br>
+        </td>
+        <td align="left" valign="top" nowrap>
+        <b>${row['speed']}</b> mph<br>
+        <b>${row['sd']}</b> SD<br>
+        <b>${row['direction']}</b><br>
+        <b>${row['counter']}</b> Data Points<br>
+        </td>
+    </tr>
+    % endfor
+    <tfoot>
+        <tr>
+            <td colspan="2">
+If you made a change to the configs and you don't see your updates on these pages, you may need to restart the WebServer to reload the configs. Restart this WebServer click <a href="/status?cam=restart-web">HERE</a>. 
+            </td>
+        </tr>
+    </tfoot>
+</table>
+<script type="text/javascript">
+$(document).ready(function() {
+
+    $('.toggle-btn').click(function() {
+        $(this).toggleClass(".toggle-btn active");
+        var element = document.getElementById("cam-toggle-link").getAttribute("href")
+    });
+});
+
+
+$(document).ready(function() {
+    if (window.location.href.indexOf("cam=") > -1) {
+        console.log("cam= in URL redirecting");
+        setTimeout(function() { window.location.href = "/status"; }, 500);
+
+    }
+});
+</script>
+

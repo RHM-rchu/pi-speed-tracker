@@ -1,0 +1,62 @@
+
+<form id="form_15337" class="appnitro"  method="get" action="">
+  <ul >
+    <li id="li_1" >
+        <input type="date" id="start" name="date_begin"
+               value="${date_begin}"
+               min="2021-01-01" max="${date_today}">
+        <label for="start">Start date</label>
+    </li>
+
+    <li id="li_2" >
+        <input type="date" id="end" name="date_end"
+               value="${date_end}"
+               min="2021-01-01" max="${date_today}">
+        <label for="end">End date</label>
+    </li>
+
+% if int(maxPerPage) > 0:
+    <li id="li_3" >
+        <input  value="${maxPerPage}" name="maxPerPage" type="text">
+        <label for="end">Max per page</label>
+    </li>
+% endif
+
+ % if direction:
+    <li id="li_4" >
+    <select name="direction" id="direction-select">
+      <option value="">Any</option>
+% for i in ['l2r', 'r2l']:
+    % if direction == i:
+    ${'<option selected value="' + i + '">' + i + '</option>'}
+    % else:
+    ${'<option value="' + i + '">' + i + '</option>'}
+    % endif
+% endfor 
+    </select>
+        <label for="end">Direction</label>
+    </li>
+
+    <li id="li_5" >
+    <select name="speed_range" id="speed_range-select">
+      <option value="">Any</option>
+% for i in ['<10', '+/-10', '+10', '+20', '>30']:
+    % if speed_range == i:
+    ${'<option selected value="' + i + '">' + i + '</option>'}
+    % else:
+    ${'<option value="' + i + '">' + i + '</option>'}
+    % endif
+% endfor 
+    </select>
+        <label for="end"> of ${speed_limit}mph</label>
+    </li>
+ % endif
+
+    <li class="buttons">
+      <input id="saveForm" class="button_text" type="submit" name="submit" value="Submit" />
+    </li>
+  </ul>
+</form> 
+
+
+

@@ -1,0 +1,229 @@
+<script src="/html/assets/modal.js"></script>
+<div style="width:95%;">
+    <canvas id="chart1"></canvas>
+</div>
+<div class="change_graph">
+Chart Type:
+<select id="type">
+    <option value="bar">Bar</option>
+    <option value="line">Line</option>
+    <option value="bubble">bubble</option>
+</select>
+<button id="update">update</button>
+</div>
+<br>
+<br>
+
+
+${form}
+<script>
+var ctx = document.getElementById('chart1').getContext('2d');
+// ctx.canvas.width = 1000;
+ctx.canvas.height = 100;
+
+Chart.pluginService.register({
+    afterDraw: function(chart) {
+
+        if (typeof chart.config.options.lineAt != 'undefined') {
+            var lineAt = chart.config.options.lineAt;
+            var ctxPlugin = chart.chart.ctx;
+            var xAxe = chart.scales[chart.config.options.scales.xAxes[0].id];
+            var yAxe = chart.scales[chart.config.options.scales.yAxes[0].id];
+
+            var position = yAxe.getPixelForValue(lineAt)
+
+            ctxPlugin.strokeStyle = "red";
+            ctxPlugin.beginPath();
+            ctxPlugin.moveTo(xAxe.left, position);
+            ctxPlugin.lineTo(xAxe.right, position);
+            ctxPlugin.stroke();
+        }
+    }
+});
+
+var cfg = {
+    data: {
+        datasets: [{
+                label: 'Left2Right',
+                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                data: [
+
+% for speed in speed_dict: 
+  % if speed['direction'] == 'l2r':
+            {t: ${speed['epoch']}, y: "${speed['mean_speed']}"},
+  % endif
+% endfor 
+                ],
+                type: 'bar',
+                pointRadius: 0,
+                fill: true,
+                lineTension: 0,
+                borderWidth: 2
+            },
+            {
+                label: 'Right2Left',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                data: [
+% for speed in speed_dict: 
+  % if speed['direction'] == 'r2l':
+            {t: ${speed['epoch']}, y: "${speed['mean_speed']}"},
+  % endif
+% endfor 
+                ],
+                type: 'bar',
+                pointRadius: 0,
+                fill: true,
+                lineTension: 0,
+                borderWidth: 2
+            }
+        ]
+    },
+    options: {
+        lineAt: ${speed_limit},
+        animation: {
+            duration: 0
+        },
+        scales: {
+            xAxes: [{
+                type: 'time',
+                distribution: 'series',
+                offset: true,
+                ticks: {
+                    major: {
+                        enabled: true,
+                        fontStyle: 'bold'
+                    },
+                    source: 'data',
+                    autoSkip: true,
+                    autoSkipPadding: 75,
+                    maxRotation: 0,
+                    sampleSize: 100
+                },
+                afterBuildTicks: function(scale, ticks) {
+                    var majorUnit = 'hour';
+                    var majorUnit = scale._majorUnit;
+                    var firstTick = ticks[0];
+                    var i, ilen, val, tick, currMajor, lastMajor;
+
+                    val = moment(ticks[0].value);
+                    if ((majorUnit === 'minute' && val.second() === 0) ||
+                        (majorUnit === 'hour' && val.minute() === 0) ||
+                        (majorUnit === 'day' && val.hour() === 9) ||
+                        (majorUnit === 'month' && val.date() <= 3 && val.isoWeekday() === 1) ||
+                        (majorUnit === 'year' && val.month() === 0)) {
+                        firstTick.major = true;
+                    } else {
+                        firstTick.major = false;
+                    }
+                    lastMajor = val.get(majorUnit);
+
+                    for (i = 1, ilen = ticks.length; i < ilen; i++) {
+                        tick = ticks[i];
+                        val = moment(tick.value);
+                        currMajor = val.get(majorUnit);
+                        tick.major = currMajor !== lastMajor;
+                        lastMajor = currMajor;
+                    }
+                    return ticks;
+                }
+            }],
+            yAxes: [{
+                gridLines: {
+                    drawBorder: false
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'MPH'
+                }
+            }]
+        },
+        tooltips: {
+            intersect: false,
+            mode: 'index',
+            callbacks: {
+                label: function(tooltipItem, myData) {
+                    var label = myData.datasets[tooltipItem.datasetIndex].label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    label += parseFloat(tooltipItem.value).toFixed(2);
+                    return label;
+                }
+            }
+        }
+    }
+};
+
+var chart = new Chart(ctx, cfg);
+
+
+document.getElementById('update').addEventListener('click', function() {
+    var type = document.getElementById('type').value;
+    var dataset1 = chart.config.data.datasets[0];
+    var dataset2 = chart.config.data.datasets[1];
+    dataset1.type = type;
+    dataset2.type = type;
+    dataset1.fill = true;
+    dataset2.fill = true;
+    chart.update();
+});
+</script>
+
+
+<div id="modal">
+    <div class="modal-header hideModal" class="close"><button class="hide" id="hide">X</button></div>
+    <div class="modal-body">
+        <div class="caption" id="modal_caption"></div>
+        <img id="myImage" class="img-responsiv next_img" src="" alt="">
+    </div>
+    <div class="modal-footer">
+        <div class="next_img">Next</div>
+        <div class="prev_img">Prev</div>
+    </div>
+</div>
+
+
+<table class="paleBlueRows list">
+    <thead>
+        <tr>
+            <th colspan="5">
+% for i in range(0, total_pages):
+    <%
+        i+=1
+    %>
+  ${'<a href="/list/?' + query_string + '&page=' + str(i) + '">' + str(i) + '</a>' if int(i) != int(page) else ' [' + str(i) + '] '}
+% endfor 
+- Found ${total_count}
+            </th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th colspan="5">Speed limit ${speed_limit}mph</th>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th>&nbsp;</th>
+            <th>Date</th>
+            <th>Speed</th>
+            <th nowrap><i class="arrow left"></i><i class="arrow right"></i></th>
+            <th>SD</th>
+        </tr>
+    </thead>
+    % for row in speed_lists:
+    <tr>
+        <td nowrap><a data-id="/${row['image_path']}" class="showModal" id="${row['id']}" alt="${row['mean_speed']}mph - ${row['direction']} - ${row['date_full']}"><img src="/html/assets/img.png"></a></td>
+        <td>${row['date_full']}</td>
+        <td>${row['mean_speed']}</td>
+        <td>${row['direction']}</td>
+        <td>${row['sd']}</td>
+    </tr>
+    % endfor
+</table>
+
+
+
+

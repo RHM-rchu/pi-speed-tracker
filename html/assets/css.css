@@ -1,0 +1,430 @@
+
+/* Style the navigation menu */
+body {
+    margin-left: 40px;
+    padding: 15px;
+
+    /* make it look decent enough */
+/*    background: #232323;
+    color: #cdcdcd;*/
+    font-family: "Avenir Next", "Avenir", sans-serif;
+}
+
+#menuToggle {
+    display: block;
+    position: fixed;
+    top: 2px;
+    left: 1px;
+    margin-top: 10px;
+    margin-left: 10px;
+
+    z-index: 1;
+
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#menuToggle a {
+    text-decoration: none;
+    color: #232323;
+
+    transition: color 0.3s ease;
+}
+
+#menuToggle a:hover {
+    color: tomato;
+}
+
+
+#menuToggle input {
+    display: block;
+    width: 40px;
+    height: 32px;
+    position: absolute;
+    top: -7px;
+    left: -5px;
+
+    cursor: pointer;
+
+    opacity: 0;
+    /* hide this */
+    z-index: 2;
+    /* and place it over the hamburger */
+
+    -webkit-touch-callout: none;
+}
+
+/*
+ * Just a quick hamburger
+ */
+#menuToggle span {
+    display: block;
+    width: 33px;
+    height: 4px;
+    margin-bottom: 5px;
+    position: relative;
+
+    background: #cdcdcd;
+    border-radius: 3px;
+
+    z-index: 1;
+
+    transform-origin: 4px 0px;
+
+    transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
+        background 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
+        opacity 0.55s ease;
+}
+
+#menuToggle span:first-child {
+    transform-origin: 0% 0%;
+}
+
+#menuToggle span:nth-last-child(2) {
+    transform-origin: 0% 100%;
+}
+
+/* 
+ * Transform all the slices of hamburger
+ * into a crossmark.
+ */
+#menuToggle input:checked~span {
+    opacity: 1;
+    transform: rotate(45deg) translate(-2px, -1px);
+    background: #232323;
+}
+
+/*
+ * But let's hide the middle one.
+ */
+#menuToggle input:checked~span:nth-last-child(3) {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.2, 0.2);
+}
+
+/*
+ * Ohyeah and the last one should go the other direction
+ */
+#menuToggle input:checked~span:nth-last-child(2) {
+    transform: rotate(-45deg) translate(0, -1px);
+}
+
+/*
+ * Make this absolute positioned
+ * at the top left of the screen
+ */
+#menu {
+    position: absolute;
+    width: 120px;
+    margin: -100px 0 0 -50px;
+    padding: 50px;
+    padding-top: 125px;
+
+    background: #ededed;
+    list-style-type: none;
+    -webkit-font-smoothing: antialiased;
+    /* to stop flickering of text in safari */
+
+    transform-origin: 0% 0%;
+    transform: translate(-100%, 0);
+
+    transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0);
+}
+
+#menu li {
+    padding: 10px 0;
+    font-size: 22px;
+}
+
+/*
+ * And let's slide it in from the left
+ */
+#menuToggle input:checked~ul {
+    transform: none;
+}
+
+div.center {
+  text-align: center;
+}
+
+
+/* Forms ---------------------------*/
+form li {
+    display: block;
+    margin: 0;
+    padding: 4px 5px 2px 9px;
+    position: relative;
+}
+
+form li:after {
+    clear: both;
+    content: ".";
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+
+
+
+/* blueTable---------------------------*/
+
+
+table.list {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+table tr:not(.fble_htr) {
+    counter-increment: rowNumber;
+}
+
+table tr:not(.fble_htr) td:first-child::before {
+    content: counter(rowNumber);
+    min-width: 1em;
+    margin-right: 0.5em;
+}
+
+table.paleBlueRows {
+    font-family: "Times New Roman", Times, serif;
+    border: 1px solid #FFFFFF;
+    width: 350px;
+    height: 200px;
+    text-align: center;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+table.paleBlueRows td,
+table.paleBlueRows th {
+    border: 1px solid #FFFFFF;
+    padding: 3px 2px;
+    vertical-align: top;
+}
+
+table.paleBlueRows tbody td {
+    font-size: 13px;
+}
+
+table.paleBlueRows tr:nth-child(even) {
+    background: #D7EBFB;
+}
+
+table.paleBlueRows thead {
+    background: #36A2EB;
+    border-bottom: 5px solid #FFFFFF;
+}
+
+table.paleBlueRows thead th {
+    font-size: 17px;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+    border-left: 2px solid #FFFFFF;
+    vertical-align: middle;
+}
+
+table.paleBlueRows thead th:first-child {
+    border-left: none;
+}
+
+table.paleBlueRows tfoot {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333333;
+    background: #D7EBFB;
+    border-top: 3px solid #444444;
+}
+
+table.paleBlueRows tfoot td {
+    font-size: 14px;
+}
+
+table.paleBlueRows tfoot .links {
+    text-align: right;
+}
+
+table.paleBlueRows tfoot .links a {
+    display: inline-block;
+    background: #36A2EB;
+    color: #FFFFFF;
+    padding: 2px 8px;
+    border-radius: 5px;
+}
+
+
+/*cinereousTable*/
+table.cinereousTable {
+    border: 6px solid #948473;
+    background-color: #FFE3C6;
+    width: 30%;
+    text-align: center;
+}
+
+table.cinereousTable td,
+table.cinereousTable th {
+    border: 1px solid #948473;
+    padding: 4px 4px;
+}
+
+table.cinereousTable tbody td {
+    font-size: 13px;
+}
+
+table.cinereousTable thead {
+    background: #948473;
+    background: -moz-linear-gradient(top, #afa396 0%, #9e9081 66%, #948473 100%);
+    background: -webkit-linear-gradient(top, #afa396 0%, #9e9081 66%, #948473 100%);
+    background: linear-gradient(to bottom, #afa396 0%, #9e9081 66%, #948473 100%);
+}
+
+table.cinereousTable thead th {
+    font-size: 17px;
+    font-weight: bold;
+    color: #F0F0F0;
+    text-align: left;
+    border-left: 2px solid #948473;
+}
+
+table.cinereousTable thead th:first-child {
+    border-left: none;
+}
+
+table.cinereousTable tfoot {
+    font-size: 16px;
+    font-weight: bold;
+    color: #F0F0F0;
+    background: #948473;
+    background: -moz-linear-gradient(top, #afa396 0%, #9e9081 66%, #948473 100%);
+    background: -webkit-linear-gradient(top, #afa396 0%, #9e9081 66%, #948473 100%);
+    background: linear-gradient(to bottom, #afa396 0%, #9e9081 66%, #948473 100%);
+}
+
+table.cinereousTable tfoot td {
+    font-size: 16px;
+}
+
+
+/* Modal ---------------------------*/
+#modal {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    margin: 10px;
+    background: #ebeae8;
+    /*background: #D7EBFB;*/
+    border-radius: 30px;
+    border: 5px solid #36A2EB;
+    -webkit-box-shadow: 3px 3px 5px 6px #ccc;
+    /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+    -moz-box-shadow: 3px 3px 5px 6px #ccc;
+    /* Firefox 3.5 - 3.6 */
+    box-shadow: 3px 3px 5px 6px #ccc;
+    /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */
+}
+
+div.next_img {
+    float: right;
+}
+
+div.prev_img {
+    float: left;
+}
+
+button.hide,
+div.next_img,
+div.prev_img {
+    border: none;
+    display: inline-block;
+    padding: 8px 16px;
+    vertical-align: middle;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    background-color: inherit;
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap;
+    border-radius: 50%;
+}
+
+button.hide:hover,
+div.next_img:hover,
+div.prev_img:hover {
+    background-color: #36A2EB !important;
+}
+
+.modal-header {
+    text-align: right;
+}
+
+
+
+
+/* Arrow ---------------------------*/
+.arrow {
+  border: solid #fff;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+}
+
+.right {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+
+.left {
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+}
+
+.up {
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+}
+
+.down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+
+
+
+/* Status Page container ---------------------------*/
+.container {
+    position: relative;
+    top: 2%;
+    left: 42%;
+    transform: translate(-40%, -40%);
+    /*border:1px solid black;*/
+
+}
+
+.toggle-btn {
+    width: 40px;
+    height: 18px;
+    background: red;
+    border-radius: 30px;
+    padding: 4px;
+    transition: all 400ms ease-in-out;
+}
+
+.toggle-btn>.circle {
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: all 400ms ease-in-out;
+}
+
+.toggle-btn.active {
+    background: #28d102;
+}
+
+.toggle-btn.active>.circle {
+    margin-left: 22px;
+}
