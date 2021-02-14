@@ -1,5 +1,5 @@
 <script src="/html/assets/modal.js"></script>
-<div style="width:95%;">
+<div class="graph_container">
     <canvas id="chart1"></canvas>
 </div>
 <div class="change_graph">

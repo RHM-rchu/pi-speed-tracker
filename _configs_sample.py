@@ -10,6 +10,11 @@ MAX_SPEED_SAVE = 90                     #<---- enter the maximum speed for publi
 SPEED_LIMIT = 40
 FIELD_OF_VIEW = 0.665
 
+# UPPER_LEFT_X = 365
+# UPPER_LEFT_Y = 460
+# LOWER_RIGHT_X = 865
+# LOWER_RIGHT_Y = 600
+
 THRESHOLD = 25
 MIN_AREA = 175
 BLURSIZE = (15,15)
@@ -39,5 +44,6 @@ DB_DIR_PATH = "db"
 DB_NAME = "speed-tracker.sqlite3"
 DB_TABLE="speeds"
 DB_PATH = DB_DIR_PATH + '/' +  DB_NAME
-LOG_FILE='/var/log/speed/speed_tracker.log'
+LOG_FILE='/var/log/speed/speed_tracker.log' #<---- ensure you have write permission to the parent directory
 LOG_FILE_WEB='/var/log/speed/py-web-server.log'
+

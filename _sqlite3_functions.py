@@ -8,7 +8,8 @@ from _configs import *
 # DB_TABLE="speed"
 # # DB_PATH = os.path.join(DB_DIR_PATH, DB_NAME)   # Create path to db file
 # DB_PATH = DB_DIR_PATH + "/" + DB_NAME   # Create path to db file
-
+DB_DIR_PATH
+os.makedirs(DB_DIR_PATH, exist_ok=True)
 
 #-----------------------------------------
 # SQLITE
@@ -21,10 +22,10 @@ def db_open(db_file):
         db_conn = sqlite3.connect(db_file)
         cursor = db_conn.cursor()
     except sqlite3.Error as e:
-        # logging.error("Failed: sqlite3 Connect to DB ", db_file)
-        # logging.error("Error Msg: ", e)
-        return None
-    sql_cmd = '''create table if not exists {} (idx text primary key,
+        print("[ERROR][DB] Failed: sqlite3 Connect to DB ", db_file)
+        print("[ERROR][DB] Error Msg: ", e)
+        # return None
+    sql_cmd = '''create table if not exists {} (id text primary key,
                  date text, 
                  hour text, 
                  minute text,

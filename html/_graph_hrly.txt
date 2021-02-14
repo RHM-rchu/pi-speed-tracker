@@ -3,7 +3,7 @@
 
 ${form}
 
-  <div id="container" style="width: 95%;">
+  <div class="graph_container"">
     <canvas id="speed"></canvas>
   </div>
 
@@ -78,7 +78,7 @@ var myChart = new Chart(ctx, {
 
 
 
-  <div style="width:95%;">
+  <div class="graph_container">
     <canvas id="canvasSpeedGroups"></canvas>
   </div>
   <script>

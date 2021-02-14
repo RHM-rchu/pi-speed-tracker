@@ -165,13 +165,18 @@ form li:after {
 }
 
 
+/* Graph ---------------------------*/
+.graph_container {
+    max-width: 900px;
+    /*border:1px solid black;*/
+
+}
 
 /* blueTable---------------------------*/
 
 
 table.list {
-  margin-right: auto;
-  margin-left: auto;
+  margin-left: 60px;
 }
 
 table tr:not(.fble_htr) {
@@ -395,6 +400,7 @@ div.prev_img:hover {
 
 
 /* Status Page container ---------------------------*/
+
 .container {
     position: relative;
     top: 2%;

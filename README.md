@@ -1,4 +1,6 @@
-# Car Speed Detection - carspeed.py (version 2.0)
+# This version is not Officially ready. I still have much to do to make it usable on a new system without custom configs. Come back soon, or use if you want to figure things out on your own.
+
+## Version (version .0.1)
 
 ## Credits
 
@@ -43,13 +45,29 @@ media
 * Picamera
 * Opencv 4.5.1
 * python3/pip3
-    * packages: mako sqlite3
+    * packages: mako picam "picamera[array]" opencv-contrib-python
 ## Usage
 
-1. Install OpenCV 4 and Python 3 on the Pi. 
+1. Install OpenCV 4 and Python 3 on the Pi. Ensure all dependencies have been installed.
+```
+pip3 install mako picam "picamera[array]" opencv-contrib-python
+```
 2. Ensure your hardware is setup and installed, and you have your cam pointing in the area you want to monitor. Enable the webcam in the `raspi-config`
+```
+sudo raspi-config
+```
+    1. Interface Options
+    2. Camera
+    3. <yes>
+    4. <OK>
+    5. <Finish> and exit
+    6. Reboot
+![DB Sample](html/assets/sample_enable_picam.png?raw=true "DB Sample")
 3. checkout this repo
-4. run the calibrator.py app, select the region you want, set the coordinate in the `_configs.py`. This also saves your image with the info at `media/images/calibrator.jpg`. Keyboard press `q` to exit when done.
+```
+git clone https://github.com/RHM-rchu/pi-speed-tracker
+```
+4. run the calibrator.py app, This pops a video player where you can draw a triangle in the video player, select the region you want to monitor. This automatically set the coordinate in a file called `_configs_coords.py`. It's advised that you only use this program to set the Region Of Interest (ROI), which is the road area you want to monitor.
 ```
 python3 calibrator.py
 ```
@@ -68,6 +86,11 @@ scripts/
 ├── speed-tracker.sh
 ├── tmp.text.sh
 └── web-server.sh
+```
+
+7. Optional, install sqlite
+```
+sudo apt-get install sqlite3 libsqlite3-dev
 ```
 
 ## running the app
