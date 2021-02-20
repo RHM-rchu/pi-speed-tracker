@@ -40,8 +40,13 @@ media
 
 
 View Graphs/Reports
+
 ![Sample Graphs Page](html/assets/sample_web.png?raw=true "Sample Graphs Page")
+
+
 Monitor Cam status - can turn Cam on/off with the toggle switch in the header
+
+
 ![Sample Status Page](html/assets/sample_web2.png?raw=true "Sample Status Page")
 
 ## Requirements
