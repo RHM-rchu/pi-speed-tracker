@@ -19,6 +19,9 @@ $(document).ready(function() {
         var nextObj = $('a[data-id="' + myImageId + '"]').closest('tr').next('tr').find("a");
         var next_img = nextObj.attr('data-id');
         var next_txt = nextObj.attr('alt');
+        if(next_img == undefined) {
+            return null
+        }
         // var next_row = $('a[data-id="' + myImageId + '"]').closest('tr').index();
         // console.log(next_row)
         $("#myImage").attr("src", next_img);
@@ -44,15 +47,15 @@ $(document).ready(function() {
         var myImageId = $('#myImage').attr('src');
         var prev_img = $('a[data-id="' + myImageId + '"]').closest('tr').prev('tr').find("a").attr('data-id');
         if (typeof prev_img == 'undefined') {
-            $("div .prev_img").hide();
+            $("div #prev_img").hide();
         } else {
-            $("div .prev_img").show();
+            $("div #prev_img").show();
         }
         var next_img = $('a[data-id="' + myImageId + '"]').closest('tr').next('tr').find("a").attr('data-id');
         if (typeof next_img == 'undefined') {
-            $("div .next_img").hide();
+            $("div #next_img").hide();
         } else {
-            $("div .next_img").show();
+            $("div #next_img").show();
         }
     }
 });

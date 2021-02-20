@@ -192,7 +192,7 @@ def render_html_form(
         speed_limit=None,
         speed_range=None,
         ):
-    htmllist = Template(filename='html/_form.txt')
+    htmllist = Template(filename='html/_form.html')
     html = htmllist.render(
         date_begin=date_begin,
         date_end=date_end,
@@ -225,7 +225,7 @@ def render_html_speed_graph(
     ttl_sp_above_30 = sum(convert_list_to_int(sp_above_30))
     ttl_sp = sum([ ttl_sp_below_10, ttl_sp_around_10, ttl_sp_above_10, ttl_sp_above_20, ttl_sp_above_30 ])
     # percentage of total
-    if ttl_sp > 1:
+    if ttl_sp >= 1:
         speed_lists = {
             "Below 10":{"count":ttl_sp_below_10, "percent":"{0}%".format(round(ttl_sp_below_10/ttl_sp*100, 2))}, 
             "Within 10":{"count":ttl_sp_around_10, "percent":"{0}%".format(round(ttl_sp_around_10/ttl_sp*100, 2))}, 
@@ -242,14 +242,15 @@ def render_html_speed_graph(
             "Above 30":{"count":0, "percent":0}
             }
 
-
     form=render_html_form(
         date_today=date_today, 
         date_begin=date_begin,
         date_end=date_end,
         speed_limit=SPEED_LIMIT,
         );
-    graph_hrly = Template(filename='html/_graph_hrly.txt')
+    graph_hrly = Template(filename='html/_graph_hrly.html')
+    print(ttl_sp)
+    print(speed_lists)
     html = graph_hrly.render(
         sp_below_10=sp_below_10, 
         sp_around_10=sp_around_10, 
@@ -332,7 +333,7 @@ def render_html_speed_list(date_today,
         );
 
     query_string = re.sub('&?page=[0-9]*', '', query_string)
-    htmllist = Template(filename='html/_list.txt')
+    htmllist = Template(filename='html/_list.html')
     html = htmllist.render(
         speed_lists=speed_lists,
         speed_dict=speed_dict,
@@ -372,7 +373,7 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
 
     sp_tracker_running = is_daemon_active('speed')
 
-    htmllist = Template(filename='html/_status.txt')
+    htmllist = Template(filename='html/_status.html')
     html = htmllist.render(sp_tracker_running=sp_tracker_running,
         latest_records=latest_records,
         total=total,
@@ -495,7 +496,7 @@ class theWebServer(BaseHTTPRequestHandler):
                     query_string=query_string,
                     )
 
-            htmlwrapper = Template(filename='html/wrapper.txt')
+            htmlwrapper = Template(filename='html/wrapper.html')
             html = htmlwrapper.render(
                 body=html_body,
                 page_refresh=WEB_AUTO_REFRESH
