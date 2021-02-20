@@ -94,8 +94,8 @@ def click_and_crop(event, x, y, flag, image):
             # Save the image
             cv2.imwrite(f"{PATH_TO_IMAGES}/calibrator.jpg", image)
             # crop the image using array slicing
-            # roi = image[ty:by, tx:bx]
-            # height, width = roi.shape[:2]
+            roi = image[ty:by, tx:bx]
+            height, width = roi.shape[:2]
             if width > 0 and height > 0:
                 # make sure roi has height/width to prevent imshow error
                 # and show the cropped image in a new window

@@ -43,16 +43,57 @@ media
 * Raspberry Pi 4 2gb RAM (Recommended)
     * Raspbian Buster - should work with any, but what I tested with
 * Picamera
-* Opencv 4.5.1
-* python3/pip3
-    * packages: mako picam "picamera[array]" opencv-contrib-python
+* Opencv 4.1.0.25
+* python3
 ## Usage
 
-1. Install OpenCV 4 and Python 3 on the Pi. Ensure all dependencies have been installed.
+1. checkout this repo
 ```
-pip3 install mako picam "picamera[array]" opencv-contrib-python
+git clone https://github.com/RHM-rchu/pi-speed-tracker
 ```
-2. Ensure your hardware is setup and installed, and you have your cam pointing in the area you want to monitor. Enable the webcam in the `raspi-config`
+2. Install python virtual environment 
+```
+sudo pip install virtualenv virtualenvwrapper
+```
+create session source scripts
+```
+cat <<EOT >> ~/.bashrc
+
+# virtualenv and virtualenvwrapper
+export WORKON_HOME=$HOME/.virtualenvs
+export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+source /usr/local/bin/virtualenvwrapper.sh
+
+EOT
+```
+Source the above environment variables 
+```
+source ~/.bashrc
+```
+create a new python environment
+```
+mkvirtualenv py3cv4 -p python3
+```
+load the environment
+```
+workon py3cv4
+```
+3. Update, Upgrade, then install requirements 
+```
+sudo apt-get update && sudo apt-get upgrade
+```
+requirements
+```
+sudo apt-get -y install libjpeg-dev libtiff5-dev libjasper-dev libpng-dev libavcodec-dev libavformat-dev \
+libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev libgdk-pixbuf2.0-dev \
+libpango1.0-dev libgtk2.0-dev libgtk-3-dev libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev \
+libhdf5-103 libqtgui4 libqtwebkit4 libqt4-test python3-pyqt5 python3-dev
+```
+4. Install OpenCV 4 and Python 3 on the Pi. Ensure all dependencies have been installed.
+```
+pip3 install -r pip.requirments.txt
+```
+5. Ensure your hardware is setup and installed, and you have your cam pointing in the area you want to monitor. Enable the webcam in the `raspi-config`
 ```
 sudo raspi-config
 ```
@@ -63,16 +104,12 @@ sudo raspi-config
     5. <Finish> and exit
     6. Reboot
 ![DB Sample](html/assets/sample_enable_picam.png?raw=true "DB Sample")
-3. checkout this repo
-```
-git clone https://github.com/RHM-rchu/pi-speed-tracker
-```
-4. run the calibrator.py app, This pops a video player where you can draw a triangle in the video player, select the region you want to monitor. This automatically set the coordinate in a file called `_configs_coords.py`. It's advised that you only use this program to set the Region Of Interest (ROI), which is the road area you want to monitor.
+6. run the calibrator.py app, This pops a video player where you can draw a triangle in the video player, select the region you want to monitor. This automatically set the coordinate in a file called `_configs_coords.py`. It's advised that you only use this program to set the Region Of Interest (ROI), which is the road area you want to monitor.
 ```
 python3 calibrator.py
 ```
-5. Measure the right and left corners that you mark when calibrating from the camera lens to the street. Set the these measurements into the `_configs.py`
-6. Edit the configs to set speed limits and other values to customize to your taste.
+7. Measure the right and left corners that you mark when calibrating from the camera lens to the street. Set the these measurements into the `_configs.py`
+8. Edit the configs to set speed limits and other values to customize to your taste.
 
 ## running the webserver
 This starts the webserver to view data as it comes in. if left to the default open the page in a brwoser at http://[server_ip_or_localhost]:8080 

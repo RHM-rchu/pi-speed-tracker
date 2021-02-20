@@ -1,13 +1,14 @@
 import sqlite3
 import os
+import sys
 
 from _configs import *
-# CSV_DIR_PATH = "data"
-# DB_DIR_PATH = "db"
-# DB_NAME = "speed-tracker.sqlite3"
-# DB_TABLE="speed"
-# # DB_PATH = os.path.join(DB_DIR_PATH, DB_NAME)   # Create path to db file
-# DB_PATH = DB_DIR_PATH + "/" + DB_NAME   # Create path to db file
+
+logfile = open(LOG_FILE,'w', 1)
+sys.stdout = logfile
+sys.stdin = logfile
+sys.stderr = logfile
+
 DB_DIR_PATH
 os.makedirs(DB_DIR_PATH, exist_ok=True)
 

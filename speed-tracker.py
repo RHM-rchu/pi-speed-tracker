@@ -10,8 +10,6 @@ import numpy as np
 import argparse
 import os, sys
 import sqlite3
-
-
 #-----------------------------------------
 # shared configs and functions
 #-----------------------------------------
@@ -31,7 +29,6 @@ else:
     # doesn't exist
     print('[ERROR] couldn\'t open configs_coords.py, To create the region to monitor run: ptython calibator.py')
     sys.exit(1)
-
 
 cvGreen = (0, 255, 0)
 cvBlack = (0, 0, 0)
@@ -56,8 +53,7 @@ upper_left_x = int(args["upper_left_x"]) if args["upper_left_x"] else UPPER_LEFT
 upper_left_y = int(args["upper_left_y"]) if args["upper_left_y"] else UPPER_LEFT_Y
 lower_right_x = int(args["lower_right_x"]) if args["lower_right_x"] else LOWER_RIGHT_X
 lower_right_y = int(args["lower_right_y"]) if args["lower_right_y"] else LOWER_RIGHT_Y
-SHOW_IMAGE = args["show_image"] if args["show_image"] else SHOW_IMAGE
-
+SHOW_IMAGE = args["show_image"] if 'show_image' in args else SHOW_IMAGE
 
 
 # calculate the the width of the image at the distance specified

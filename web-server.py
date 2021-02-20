@@ -140,15 +140,13 @@ def get_data_server_status(date_today, web_statuspage_limit=10):
 # General
 #-----------------------------------------
 def is_daemon_active(daemon):
-    command = "systemctl is-active " + daemon + " > tmp"
+    command = f"./scripts/service-manager.sh  -a {daemon} -x status > tmp"
     os.system(command)
     with open('tmp') as tmp:
         tmp = tmp.read()
-        if "active" == re.sub(r'\W+', '', tmp):
-            os.remove('tmp')
-            return 1
+        tmppid = int(re.sub(r'\W+', '', tmp))
     os.remove('tmp')
-    return 0
+    return tmppid
 
 
 def convert_list_to_int(thelist):
@@ -363,16 +361,16 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
 
     #--- turn cam on/off
     if cam == "start":
-        os.system("sudo systemctl start speed-tracker.service")
+        os.system("./scripts/service-manager.sh -a speed -x start")
         time.sleep(1)
     elif cam == "stop":
-        os.system("sudo systemctl stop speed-tracker.service" )
+        os.system("./scripts/service-manager.sh -a speed -x stop" )
         time.sleep(1)
     if cam == "restart-web":
-        os.system("sudo systemctl restart py-web-tracker.service" )
+        os.system("./scripts/service-manager.sh -a web -x restart" )
         time.sleep(4)
 
-    sp_tracker_running = is_daemon_active('speed-tracker')
+    sp_tracker_running = is_daemon_active('speed')
 
     htmllist = Template(filename='html/_status.txt')
     html = htmllist.render(sp_tracker_running=sp_tracker_running,
