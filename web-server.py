@@ -386,40 +386,43 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        key = self.server.get_auth_key()
 
-        ''' Present frontpage with user authentication. '''
-        if self.headers.get('Authorization') == 'Basic ' + str(key):
-            # self.send_response(200)
-            # self.send_header('Content-type', 'application/json')
-            # self.end_headers()
+        #------------ userauth
+        if WEB_REQURE_AUTH == True:
+            key = self.server.get_auth_key()
 
-            getvars = self._parse_GET()
+            ''' Present frontpage with user authentication. '''
+            if self.headers.get('Authorization') == 'Basic ' + str(key):
+                # self.send_response(200)
+                # self.send_header('Content-type', 'application/json')
+                # self.end_headers()
 
-            response = {
-                'path': self.path,
-                'get_vars': str(getvars)
-            }
+                getvars = self._parse_GET()
 
-            base_path = urlparse(self.path).path
-            if base_path == '/path1':
-                # Do some work
-                pass
-            elif base_path == '/path2':
-                # Do some work
-                pass
+                response = {
+                    'path': self.path,
+                    'get_vars': str(getvars)
+                }
 
-            # self.wfile.write(bytes(json.dumps(response), 'utf-8'))
-        else:
-            self.do_AUTHHEAD()
+                base_path = urlparse(self.path).path
+                if base_path == '/path1':
+                    # Do some work
+                    pass
+                elif base_path == '/path2':
+                    # Do some work
+                    pass
 
-            response = {
-                'success': False,
-                'error': 'Invalid credentials'
-            }
+                # self.wfile.write(bytes(json.dumps(response), 'utf-8'))
+            else:
+                self.do_AUTHHEAD()
 
-            self.wfile.write(bytes(json.dumps(response), 'utf-8'))
-            return None
+                response = {
+                    'success': False,
+                    'error': 'Invalid credentials'
+                }
+
+                self.wfile.write(bytes(json.dumps(response), 'utf-8'))
+                return None
 
 
         # root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'html')
@@ -544,7 +547,7 @@ class CustomHTTPServer(http.server.HTTPServer):
 
 if __name__ == "__main__":        
     webServer = CustomHTTPServer(('', serverPort))
-    webServer.set_auth(WEB_USERNAME, WEB_PASSWORD)
+    if WEB_REQURE_AUTH == True: webServer.set_auth(WEB_USERNAME, WEB_PASSWORD)
     print("Server started http://%s:%s" % (hostName, serverPort))
 
     try:

@@ -33,6 +33,7 @@ MIN_SAVE_BUFFER = 2
 # web page configs
 WEB_AUTO_REFRESH = 900                  #<---- auto update the webpages in sec
 WEB_STATUSPAGE_LIMIT = 100              #<---- limits results per page on status page
+WEB_REQURE_AUTH = True                  #<---- Must use user/pass to access web UI
 WEB_USERNAME = "speed"
 WEB_PASSWORD = "racer"
 
