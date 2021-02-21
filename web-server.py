@@ -27,14 +27,16 @@ serverPort = 8080
 def get_data_speed_matrix(date_begin, date_end):
     # global DB_TABLE
     ttl_records = 0
-    print(f"--------{DB_TABLE}-----------<<<<<<")
+
     for i, val in enumerate(WEB_SPEED_DICT):
-        WEB_SPEED_DICT[i]['lists'] = [0 for x in range(1, 24)]
+        WEB_SPEED_DICT[i]['lists'] = [0 for x in range(0, 24)]
 
     datebegin = date_begin.replace("-","")
     dateend = date_end.replace("-","")
 
-    result = db_select_record(f'''SELECT mean_speed, hour from {DB_TABLE} WHERE date BETWEEN '{datebegin}' and '{dateend}';''')
+    result = db_select_record(f'''
+        SELECT mean_speed, hour from {DB_TABLE} WHERE date BETWEEN '{datebegin}' and '{dateend}'
+        ''')
 
     if result:
         for row in result:
@@ -43,7 +45,7 @@ def get_data_speed_matrix(date_begin, date_end):
 
             for i, val in enumerate(WEB_SPEED_DICT):
                 if sp >= WEB_SPEED_DICT[i]['speed_low'] and sp <= WEB_SPEED_DICT[i]['speed_high']:
-                    WEB_SPEED_DICT[i]['lists'][hr] += 1
+                    WEB_SPEED_DICT[i]['lists'][(hr - 1)] += 1
                     WEB_SPEED_DICT[i]['total'] = sum(WEB_SPEED_DICT[i]['lists'])
                     ttl_records += 1
 
@@ -80,16 +82,10 @@ def get_data_speed_list(
     sql_direction = f" and direction='{direction}'" if direction else ""
 
     if speed_range:
-        speed_ranges = {
-            '<10': " and mean_speed < %d" % (speed_limit - 10),
-            '+/-10': " and (mean_speed > %s and mean_speed < %s)" % ((speed_limit - 10), (speed_limit + 10)),
-            '+10': " and mean_speed > %d" % (speed_limit + 10),
-            '+20': " and mean_speed > %d" % (speed_limit + 20),
-            '>30': " and mean_speed > %d" % (speed_limit + 30),
-            }
-        # if speed_ranges[speed_range]:
-        if speed_range in speed_ranges:
-            sql_speed_range = speed_ranges[speed_range]
+        for i, val in enumerate(WEB_SPEED_DICT):
+            if val['name'] == speed_range:
+                sql_speed_range = f"and (mean_speed >= {val['speed_low']} and mean_speed <= {val['speed_high']})"
+                # sql_speed_range = "and mean_speed BETWEEN %.2f and %.2f" % ( (float(val['speed_low']) - .5), (float(val['speed_high']) + .5) )
 
     result = db_select_record(f'''SELECT count(date) as total 
         from {DB_TABLE}
@@ -187,6 +183,7 @@ def render_html_form(
         speed_range=speed_range,
         LEFT_TO_RIGHT=LEFT_TO_RIGHT,
         RIGHT_TO_LEFT=RIGHT_TO_LEFT,
+        WEB_SPEED_DICT=WEB_SPEED_DICT,
         )
     return html
 
@@ -199,19 +196,16 @@ def render_html_speed_graph(
     
     matrix, ttl_records = get_data_speed_matrix(date_begin, date_end)
 
-
     #################################
     speed_lists = {}
     graph_hrly_datas = {}
     total = ""
     percent = 0
     for i, val in enumerate(WEB_SPEED_DICT):
-        if 'total' in val:
-            total = val['total']
-        else:
-            total = 0
+        if 'total' in val: total = val['total']
+        else: total = 0
 
-        if total > 0:
+        if total > 0 and ttl_records > 0:
             percent = "{0}".format(round(total/ttl_records*100, 2))
         else: 
             percent = 0
@@ -225,8 +219,6 @@ def render_html_speed_graph(
             "rgb":val['rgb'], 
             "data":[str(element) for element in val['lists']],
             }
-    print(speed_lists)
-    print(graph_hrly_datas)
 
 
     form=render_html_form(
@@ -236,7 +228,7 @@ def render_html_speed_graph(
         speed_limit=SPEED_LIMIT,
         );
     graph_hrly = Template(filename='html/_graph_hrly.html')
-    print(speed_lists)
+
     html = graph_hrly.render(
         graph_hrly_datas=graph_hrly_datas,
         percent_sp_list=speed_lists,

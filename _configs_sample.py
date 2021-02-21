@@ -25,16 +25,49 @@ WAITING = 0
 TRACKING = 1
 SAVING = 2
 UNKNOWN = 0
-LEFT_TO_RIGHT = 'l2r'
-RIGHT_TO_LEFT = 'r2l'
+LEFT_TO_RIGHT = 'Southbound'
+RIGHT_TO_LEFT = 'Northbound'
 TOO_CLOSE = 0.4
 MIN_SAVE_BUFFER = 2
 
 # web page configs
-WEB_AUTO_REFRESH=900                    #<---- auto update the webpages in sec
-WEB_STATUSPAGE_LIMIT=100                #<---- limits results per page on status page
-WEB_USERNAME: "speed"
-WEB_PASSWORD: "racer"
+WEB_AUTO_REFRESH = 900                  #<---- auto update the webpages in sec
+WEB_STATUSPAGE_LIMIT = 100              #<---- limits results per page on status page
+WEB_USERNAME = "speed"
+WEB_PASSWORD = "racer"
+
+WEB_SPEED_DICT = [                      #<---- Speed names and ranges to plot on the graph 
+    {
+    "name": 'Snail under 29',
+    "rgb": '75, 192, 192',
+    "speed_low": 0,
+    "speed_high": 29,
+    },
+    {
+    "name": 'Safe Drivers',
+    "rgb": '54, 162, 235',
+    "speed_low": 30,
+    "speed_high": 40,
+    },
+    {
+    "name": '45-50',
+    "rgb": '255, 206, 86',
+    "speed_low": 41,
+    "speed_high": 50,
+    },
+    {
+    "name": '50-54',
+    "rgb": '255, 99, 132',
+    "speed_low": 51,
+    "speed_high": 60,
+    },
+    {
+    "name": 'speed daemon',
+    "rgb": '153, 102, 255',
+    "speed_low": 61,
+    "speed_high": 155,
+    },
+]
 
 # Path and directories, safe to ignore, unless you really have to change
 PATH_TO_IMAGES = "media/images"
