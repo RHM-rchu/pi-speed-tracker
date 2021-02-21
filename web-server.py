@@ -1,10 +1,12 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
+# from http.server import BaseHTTPRequestHandler, HTTPServer
+import http.server
+import json
+import base64
 import datetime, time, os, sys
 import re
 # import http.server
 import socketserver
-from urllib.parse import urlparse
-from urllib.parse import parse_qs
+from urllib.parse import urlparse, parse_qs
 from mako.template import Template
 
 from _configs import *
@@ -15,23 +17,27 @@ sys.stdout = logfile
 sys.stdin = logfile
 sys.stderr = logfile
 
-
 # hostName = "localhost"
 hostName = ""
 serverPort = 8080
-
-def print2log(message=''):
-    global LOG_FILE_WEB
-    print(message)
-    f = open(LOG_FILE_WEB, 'a')
-    f.write(message+"\n")
-    f.close
 
 #-----------------------------------------
 # DB
 #-----------------------------------------
 def get_data_speed_matrix(date_begin, date_end):
-    global DB_TABLE
+    # global DB_TABLE
+
+    # print(f"--------{DB_TABLE}-----------<<<<<<")
+    # for i, val in enumerate(WEB_SPEED_DICT):
+    #     WEB_SPEED_DICT[i]['lists'] = [0 for x in range(1, 24)]
+    #     if val['operand'] == '+':
+    #         WEB_SPEED_DICT[i]['range'] = (SPEED_LIMIT + val['speed'])
+    #     elif val['operand'] == '-':
+    #         WEB_SPEED_DICT[i]['range'] = (SPEED_LIMIT - val['speed'])
+    #     elif val['operand'] == '~':
+    #         WEB_SPEED_DICT[i]['range'] = (SPEED_LIMIT)
+    #     print(WEB_SPEED_DICT[i])
+
     # ensure 24 slots for 24hrs
     lists_below_10 = [0 for x in range(1, 24)]
     lists_around_10 = [0 for x in range(1, 24)]
@@ -75,7 +81,7 @@ def get_data_speed_list(
         speed_range=None,
         speed_limit=SPEED_LIMIT,
         ):
-    global DB_TABLE
+    # global DB_TABLE
     datebegin = date_begin.replace("-","")
     dateend = date_end.replace("-","")
     page = int(page)
@@ -123,7 +129,7 @@ def get_data_speed_list(
     return result, total_page, total
 
 def get_data_server_status(date_today, web_statuspage_limit=10):
-    global DB_TABLE
+    # global DB_TABLE
 
     date_today = date_today.replace("-","")
     result = db_select_record(f'''SELECT count(date) as total 
@@ -155,7 +161,7 @@ def convert_list_to_int(thelist):
 
 
 def temp_change_primarykeys():
-    global DB_TABLE
+    # global DB_TABLE
     local_table = "speedTracker"
     # milliseconds_since_epoch = datetime.datetime.now().timestamp() * 1000
     # print(f"---->{milliseconds_since_epoch}")
@@ -201,6 +207,8 @@ def render_html_form(
         direction=direction,
         speed_limit=speed_limit,
         speed_range=speed_range,
+        LEFT_TO_RIGHT=LEFT_TO_RIGHT,
+        RIGHT_TO_LEFT=RIGHT_TO_LEFT,
         )
     return html
 
@@ -313,13 +321,13 @@ def render_html_speed_list(date_today,
             'mean_speed': 0,
             'date_full': date_full,
             'epoch': 0,
-            'direction': 'l2r',
+            'direction': LEFT_TO_RIGHT,
             })
         speed_dict.append({
             'mean_speed': 0,
             'date_full': date_full,
             'epoch': 0,
-            'direction': 'r2l',
+            'direction': RIGHT_TO_LEFT,
             })
 
     form=render_html_form(
@@ -345,6 +353,8 @@ def render_html_speed_list(date_today,
         page=page,
         total_count=total_count,
         total_pages=int(total_pages),
+        LEFT_TO_RIGHT=LEFT_TO_RIGHT,
+        RIGHT_TO_LEFT=RIGHT_TO_LEFT,
         )
     return html
 
@@ -368,8 +378,9 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
         os.system("./scripts/service-manager.sh -a speed -x stop" )
         time.sleep(1)
     if cam == "restart-web":
-        os.system("./scripts/service-manager.sh -a web -x restart" )
-        time.sleep(4)
+        os.system("./scripts/service-manager.sh -a web -x stop" )
+        time.sleep(2)
+        os.system("./scripts/service-manager.sh -a web -x start" )
 
     sp_tracker_running = is_daemon_active('speed')
 
@@ -402,8 +413,51 @@ def content_type(filename_rel):
         }
     return ext2conttype[filename_rel[filename_rel.rfind(".")+1:].lower()]
 
-class theWebServer(BaseHTTPRequestHandler):
+class theWebServer(http.server.BaseHTTPRequestHandler):
+    def do_AUTHHEAD(self):
+        self.send_response(401)
+        self.send_header(
+            'WWW-Authenticate', 'Basic realm="Auth Realm"')
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+
     def do_GET(self):
+        key = self.server.get_auth_key()
+
+        ''' Present frontpage with user authentication. '''
+        if self.headers.get('Authorization') == 'Basic ' + str(key):
+            # self.send_response(200)
+            # self.send_header('Content-type', 'application/json')
+            # self.end_headers()
+
+            getvars = self._parse_GET()
+
+            response = {
+                'path': self.path,
+                'get_vars': str(getvars)
+            }
+
+            base_path = urlparse(self.path).path
+            if base_path == '/path1':
+                # Do some work
+                pass
+            elif base_path == '/path2':
+                # Do some work
+                pass
+
+            # self.wfile.write(bytes(json.dumps(response), 'utf-8'))
+        else:
+            self.do_AUTHHEAD()
+
+            response = {
+                'success': False,
+                'error': 'Invalid credentials'
+            }
+
+            self.wfile.write(bytes(json.dumps(response), 'utf-8'))
+            return None
+
+
         # root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'html')
         filename =  self.path
         filename_rel = filename.strip('/')
@@ -504,10 +558,29 @@ class theWebServer(BaseHTTPRequestHandler):
 
             self.wfile.write(bytes(html, "utf-8"))
 
+    def _parse_GET(self):
+        getvars = parse_qs(urlparse(self.path).query)
+
+        return getvars
+
+
+class CustomHTTPServer(http.server.HTTPServer):
+    key = ''
+
+    def __init__(self, address, handlerClass=theWebServer):
+        super().__init__(address, handlerClass)
+
+    def set_auth(self, username, password):
+        self.key = base64.b64encode(
+            bytes('%s:%s' % (username, password), 'utf-8')).decode('ascii')
+
+    def get_auth_key(self):
+        return self.key
 
 
 if __name__ == "__main__":        
-    webServer = HTTPServer(("", serverPort), theWebServer)
+    webServer = CustomHTTPServer(('', serverPort))
+    webServer.set_auth(WEB_USERNAME, WEB_PASSWORD)
     print("Server started http://%s:%s" % (hostName, serverPort))
 
     try:

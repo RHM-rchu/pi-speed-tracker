@@ -11,7 +11,7 @@ Chart Type:
 </select>
 <button id="update">update</button>
 </div>
-<br>
+<br>{LEFT_TO_RIGHT}123
 <br>
 
 
@@ -50,7 +50,7 @@ var cfg = {
                 data: [
 
 % for speed in speed_dict: 
-  % if speed['direction'] == 'l2r':
+  % if speed['direction'] == LEFT_TO_RIGHT:
             {t: ${speed['epoch']}, y: "${speed['mean_speed']}"},
   % endif
 % endfor 
@@ -67,7 +67,7 @@ var cfg = {
                 borderColor: 'rgba(75, 192, 192, 1)',
                 data: [
 % for speed in speed_dict: 
-  % if speed['direction'] == 'r2l':
+  % if speed['direction'] == RIGHT_TO_LEFT:
             {t: ${speed['epoch']}, y: "${speed['mean_speed']}"},
   % endif
 % endfor 

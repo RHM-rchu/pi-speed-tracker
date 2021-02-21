@@ -26,7 +26,7 @@
     <li id="li_4" >
     <select name="direction" id="direction-select">
       <option value="">Any</option>
-% for i in ['l2r', 'r2l']:
+% for i in [LEFT_TO_RIGHT, RIGHT_TO_LEFT]:
     % if direction == i:
     ${'<option selected value="' + i + '">' + i + '</option>'}
     % else:
