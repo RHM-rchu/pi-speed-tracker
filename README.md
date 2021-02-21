@@ -1,6 +1,6 @@
 # A Work in progress...
 
-## v0.4.0
+## v0.4.5
 
 ## Credits
 
@@ -120,9 +120,9 @@ then run
 ```
 pip install -r pip.requirments.txt
 ```
-This could take a while, like an hour or so.
+This could take about an hour if you have not run before.
 
-5. Ensure your hardware is hooked up to you PI, and you have your cam pointing to the road. Enable the webcam in the `raspi-config`. 
+5. Ensure your CAM is hooked up to you PI, and you have your cam pointing to the road. Then enable the webcam in the `raspi-config`. 
 ```
 sudo raspi-config
 ```
