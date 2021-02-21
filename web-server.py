@@ -26,29 +26,10 @@ serverPort = 8080
 #-----------------------------------------
 def get_data_speed_matrix(date_begin, date_end):
     # global DB_TABLE
-
-    # print(f"--------{DB_TABLE}-----------<<<<<<")
-    # for i, val in enumerate(WEB_SPEED_DICT):
-    #     WEB_SPEED_DICT[i]['lists'] = [0 for x in range(1, 24)]
-    #     if val['operand'] == '+':
-    #         WEB_SPEED_DICT[i]['range'] = (SPEED_LIMIT + val['speed'])
-    #     elif val['operand'] == '-':
-    #         WEB_SPEED_DICT[i]['range'] = (SPEED_LIMIT - val['speed'])
-    #     elif val['operand'] == '~':
-    #         WEB_SPEED_DICT[i]['range'] = (SPEED_LIMIT)
-    #     print(WEB_SPEED_DICT[i])
-
-    # ensure 24 slots for 24hrs
-    lists_below_10 = [0 for x in range(1, 24)]
-    lists_around_10 = [0 for x in range(1, 24)]
-    lists_above_10 = [0 for x in range(1, 24)]
-    lists_above_20 = [0 for x in range(1, 24)]
-    lists_above_30 = [0 for x in range(1, 24)]
-    # set speeds based on speed limit
-    below_10 = int(SPEED_LIMIT - 10)
-    above_10 = int(SPEED_LIMIT + 10)
-    above_20 = int(SPEED_LIMIT + 20)
-    above_30 = int(SPEED_LIMIT + 30)
+    ttl_records = 0
+    print(f"--------{DB_TABLE}-----------<<<<<<")
+    for i, val in enumerate(WEB_SPEED_DICT):
+        WEB_SPEED_DICT[i]['lists'] = [0 for x in range(1, 24)]
 
     datebegin = date_begin.replace("-","")
     dateend = date_end.replace("-","")
@@ -59,18 +40,15 @@ def get_data_speed_matrix(date_begin, date_end):
         for row in result:
             hr = int(row['hour'])
             sp = int(f"{float(row['mean_speed']):.0f}")
-            if sp < below_10:
-                lists_below_10[hr] += 1
-            elif sp > above_30:
-                lists_above_30[hr] += 1
-            elif sp > above_20:
-                lists_above_20[hr] += 1
-            elif sp > above_10:
-                lists_above_10[hr] += 1
-            else:
-                lists_around_10[hr] += 1
 
-    return (lists_below_10, lists_around_10, lists_above_10, lists_above_20, lists_above_30)
+            for i, val in enumerate(WEB_SPEED_DICT):
+                if sp >= WEB_SPEED_DICT[i]['speed_low'] and sp <= WEB_SPEED_DICT[i]['speed_high']:
+                    WEB_SPEED_DICT[i]['lists'][hr] += 1
+                    WEB_SPEED_DICT[i]['total'] = sum(WEB_SPEED_DICT[i]['lists'])
+                    ttl_records += 1
+
+
+    return (WEB_SPEED_DICT, ttl_records)
 
 def get_data_speed_list(
         date_begin, 
@@ -219,36 +197,37 @@ def render_html_speed_graph(
         query_string,
         ):
     
-    sp_below_10, sp_around_10, sp_above_10, sp_above_20, sp_above_30 = get_data_speed_matrix(date_begin, date_end)
-    sp_below_10 = [str(element) for element in sp_below_10]
-    sp_around_10 = [str(element) for element in sp_around_10]
-    sp_above_10 = [str(element) for element in sp_above_10]
-    sp_above_20 = [str(element) for element in sp_above_20]
-    sp_above_30 = [str(element) for element in sp_above_30]
-    # total for each category
-    ttl_sp_below_10 = sum(convert_list_to_int(sp_below_10))
-    ttl_sp_around_10 = sum(convert_list_to_int(sp_around_10))
-    ttl_sp_above_10 = sum(convert_list_to_int(sp_above_10))
-    ttl_sp_above_20 = sum(convert_list_to_int(sp_above_20))
-    ttl_sp_above_30 = sum(convert_list_to_int(sp_above_30))
-    ttl_sp = sum([ ttl_sp_below_10, ttl_sp_around_10, ttl_sp_above_10, ttl_sp_above_20, ttl_sp_above_30 ])
-    # percentage of total
-    if ttl_sp >= 1:
-        speed_lists = {
-            "Below 10":{"count":ttl_sp_below_10, "percent":"{0}%".format(round(ttl_sp_below_10/ttl_sp*100, 2))}, 
-            "Within 10":{"count":ttl_sp_around_10, "percent":"{0}%".format(round(ttl_sp_around_10/ttl_sp*100, 2))}, 
-            "Above 10":{"count":ttl_sp_above_10, "percent":"{0}%".format(round(ttl_sp_above_10/ttl_sp*100, 2))}, 
-            "Above 20":{"count":ttl_sp_above_20, "percent":"{0}%".format(round(ttl_sp_above_20/ttl_sp*100, 2))}, 
-            "Above 30":{"count":ttl_sp_above_30, "percent":"{0}%".format(round(ttl_sp_above_30/ttl_sp*100, 2))}
+    matrix, ttl_records = get_data_speed_matrix(date_begin, date_end)
+
+
+    #################################
+    speed_lists = {}
+    graph_hrly_datas = {}
+    total = ""
+    percent = 0
+    for i, val in enumerate(WEB_SPEED_DICT):
+        if 'total' in val:
+            total = val['total']
+        else:
+            total = 0
+
+        if total > 0:
+            percent = "{0}".format(round(total/ttl_records*100, 2))
+        else: 
+            percent = 0
+
+        speed_lists[val['name']] = {
+            "count": total, 
+            "rgb":val['rgb'], 
+            "percent": percent,
             }
-    else:
-          speed_lists = {
-            "Below 10":{"count":0, "percent":0}, 
-            "Within 10":{"count":0, "percent":0}, 
-            "Above 10":{"count":0, "percent":0}, 
-            "Above 20":{"count":0, "percent":0}, 
-            "Above 30":{"count":0, "percent":0}
+        graph_hrly_datas[val['name']] = {
+            "rgb":val['rgb'], 
+            "data":[str(element) for element in val['lists']],
             }
+    print(speed_lists)
+    print(graph_hrly_datas)
+
 
     form=render_html_form(
         date_today=date_today, 
@@ -257,16 +236,11 @@ def render_html_speed_graph(
         speed_limit=SPEED_LIMIT,
         );
     graph_hrly = Template(filename='html/_graph_hrly.html')
-    print(ttl_sp)
     print(speed_lists)
     html = graph_hrly.render(
-        sp_below_10=sp_below_10, 
-        sp_around_10=sp_around_10, 
-        sp_above_10=sp_above_10, 
-        sp_above_20=sp_above_20, 
-        sp_above_30=sp_above_30, 
+        graph_hrly_datas=graph_hrly_datas,
         percent_sp_list=speed_lists,
-        total_sp=ttl_sp,
+        total_sp=ttl_records,
         date_today=date_today,
         date_begin=date_begin,
         date_end=date_end,

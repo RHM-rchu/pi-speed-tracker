@@ -101,8 +101,8 @@ app_stop() {
 app_restart() {
     local APP=$1
     app_stop $APP
-    echo "Pausing for 2sec to let system catch up"
-    sleep 2
+    echo "Pausing for 2 sec to let system catch up"
+    sleep 1
     app_start $APP
 }
 app_status() {
