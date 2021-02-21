@@ -378,9 +378,7 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
         os.system("./scripts/service-manager.sh -a speed -x stop" )
         time.sleep(1)
     if cam == "restart-web":
-        os.system("./scripts/service-manager.sh -a web -x stop" )
-        time.sleep(2)
-        os.system("./scripts/service-manager.sh -a web -x start" )
+        os.system("./scripts/service-manager.sh -a web -x restart" )
 
     sp_tracker_running = is_daemon_active('speed')
 

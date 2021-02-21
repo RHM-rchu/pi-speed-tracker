@@ -70,14 +70,13 @@ app_start() {
     local APP=$1
     # no app specified do both
     # only if pid greater than 0 ignore
-    echo "app_start---->${APP}"
     if [[ -z "$APP" ]]; then 
         [ "${pid_speed:-0}" -gt "0" ] || python $APP_SPEED --show_image=False &
         [ "${pid_web:-0}" -gt "0" ] || python $APP_WEB &
     else
-        if [[ "${APP}" = "${APP_SPEED}" ]]; then
+        if [[ "${APP}" == "${APP_SPEED}" ]]; then
             [ "${pid_speed:-0}" -gt "0" ] || python $APP --show_image=False &
-        elif [[ "${APP}" = "${APP_WEB}" ]]; then
+        elif [[ "${APP}" == "${APP_WEB}" ]]; then
             [ "${pid_web:-0}" -gt "0" ] || python $APP &
         fi
     fi
@@ -97,6 +96,7 @@ app_stop() {
             [ "${pid_web:-0}" -gt "0" ] && sudo kill $pid_web
         fi
     fi
+    app_status
 }
 app_restart() {
     local APP=$1
