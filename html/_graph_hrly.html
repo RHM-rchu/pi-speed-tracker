@@ -7,9 +7,9 @@ ${form}
     <canvas id="speed"></canvas>
   </div>
   <div class="change_graph">
-    
+
   Chart Type:
-  <select id="type">
+  <select id="type1">
       <option value="bar">Bar</option>
       <option value="line">Line</option>
       <option value="bubble">bubble</option>
@@ -82,10 +82,9 @@ var chart1 = new Chart(ctx, {
 });
 
   document.getElementById('update1').addEventListener('click', function() {
-      var type = document.getElementById('type').value;
+      var type = document.getElementById('type1').value;
       for (const [key, theLineGraph] of Object.entries(chart1.config.data.datasets)) {
         console.log(key, theLineGraph);
-        // chart1s[key] = theLineGraph
         theLineGraph.type = type;
         theLineGraph.fill = true;
         theLineGraph.borderWidth = 2
@@ -103,7 +102,7 @@ var chart1 = new Chart(ctx, {
 
   <div class="change_graph">
   Chart Type:
-  <select id="type">
+  <select id="type2">
       <option value="line">Line</option>
       <option value="bar">Bar</option>
       <option value="bubble">bubble</option>
@@ -154,7 +153,7 @@ var chart1 = new Chart(ctx, {
     var chart2 = new Chart(ctx, config);
 
     document.getElementById('update2').addEventListener('click', function() {
-        var type = document.getElementById('type').value;
+        var type = document.getElementById('type2').value;
         for (const [key, theLineGraph] of Object.entries(chart2.config.data.datasets)) {
           console.log(key, theLineGraph);
           // chart2s[key] = theLineGraph
