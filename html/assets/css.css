@@ -439,6 +439,11 @@ div.prev_img:hover {
 /* Log Viewer ---------------------------*/
 div.container_nav ul {
     list-style-type: none;
+    display: flex;
+}
+div.container_nav ul li{
+    /*flex-basis: 50px;*/
+    margin-left: 10px;
 }
 .container_log {
     margin-left: 40px;
