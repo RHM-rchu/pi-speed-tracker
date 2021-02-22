@@ -129,7 +129,7 @@ def calibration_image(image):
     image = cv2.circle(image, (lower_right_x,lower_right_y), 8, cvGreen, -3)
 
     calibration_image_path = ("%s/calibrate.jpg" % PATH_TO_IMAGES)
-    if CONSOLE_DEBUGGER: print2log("[NOTICE] Creating calibration img: %s" % calibration_image_path)
+    if CONSOLE_DEBUGGER: print("[NOTICE] Creating calibration img: %s" % calibration_image_path)
     cv2.imwrite( calibration_image_path, image )
     return image
 """
@@ -137,14 +137,14 @@ Reciprocal function curve to give a smaller number for bright light and a bigger
 """
 def get_save_buffer(light):
     save_buffer = int((100/(light - 0.5)) + MIN_SAVE_BUFFER)    
-    if CONSOLE_DEBUGGER >= 3: print2log("[INFO] Save Buffer:  %s" %  save_buffer)
+    if CONSOLE_DEBUGGER >= 3: print("[INFO] Save Buffer:  %s" %  save_buffer)
     return save_buffer
 
 def get_min_area(light):
     if (light > 10):
         light = 10;
     area =int((1000 * math.sqrt(light - 1)) + 100)
-    if CONSOLE_DEBUGGER >= 3: print2log("[INFO] Main Area:  %s" %  area)
+    if CONSOLE_DEBUGGER >= 3: print("[INFO] Main Area:  %s" %  area)
     return area
 
 def get_threshold(light):
@@ -157,7 +157,7 @@ def get_threshold(light):
         threshold = 60
     else:
         threshold = THRESHOLD
-    if CONSOLE_DEBUGGER >= 3: print2log("[INFO] Threahold: %s" %  threshold)
+    if CONSOLE_DEBUGGER >= 3: print("[INFO] Threahold: %s" %  threshold)
     return threshold
 
 def store_image(cap_time, image, mean_speed):
@@ -170,7 +170,7 @@ def store_image(cap_time, image, mean_speed):
     imageFilename_full = media_path + "/" + "car_at_" + cap_time.strftime("%Y%m%d_%H%M%S") + ".jpg"
     os.makedirs(media_path, exist_ok=True)
 
-    if CONSOLE_DEBUGGER >= 2: print2log("[SAVING] Image:  %s" % imageFilename_full)
+    if CONSOLE_DEBUGGER >= 2: print("[SAVING] Image:  %s" % imageFilename_full)
 
     cv2.putText(s_image, txt_date,
         (10, s_image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
@@ -186,7 +186,7 @@ def store_image(cap_time, image, mean_speed):
     return imageFilename_full
 
 def store_traffic_data(cap_time, mean_speed, direction, counter, standard_deviation, imageFilename_full=''):
-    if CONSOLE_DEBUGGER >= 2: print2log("[SAVING] Record: %.0fmph with standard_deviation of %.2f with %s data points" % 
+    if CONSOLE_DEBUGGER >= 2: print("[SAVING] Record: %.0fmph with standard_deviation of %.2f with %s data points" % 
         (mean_speed, standard_deviation, counter))
     csvString =  "%s, %s, %s, %s, %s, %s" % \
         (cap_time.strftime("%Y-%m-%d %H:%M:%S"), mean_speed, direction, counter, standard_deviation, imageFilename_full)
@@ -303,16 +303,16 @@ def main():
     monitored_width = lower_right_x - upper_left_x
     monitored_height = lower_right_y - upper_left_y
 
-    print2log(f"[LOADING] Tracking area:")
-    print2log(f"[LOADING]   upper_left_x {upper_left_x}")
-    print2log(f"[LOADING]   upper_left_y {upper_left_y}")
-    print2log(f"[LOADING]   lower_right_x {lower_right_x}")
-    print2log(f"[LOADING]   lower_right_y {lower_right_y}")
-    print2log(f"[LOADING]   monitored_width {monitored_width}")
-    print2log(f"[LOADING]   monitored_height {monitored_height}")
-    print2log(f"[LOADING]   monitored_area {monitored_width * monitored_height}")
-    print2log("[LOADING]   L2R Image width in feet {:.0f} at {:.0f} from camera".format(l2r_frame_width_ft, L2R_DISTANCE))
-    print2log("[LOADING]   R2L Image width in feet {0:3.0f} at {1:3.0f} from camera".format(r2l_frame_width_ft, R2L_DISTANCE))
+    print(f"[LOADING] Tracking area:")
+    print(f"[LOADING]   upper_left_x {upper_left_x}")
+    print(f"[LOADING]   upper_left_y {upper_left_y}")
+    print(f"[LOADING]   lower_right_x {lower_right_x}")
+    print(f"[LOADING]   lower_right_y {lower_right_y}")
+    print(f"[LOADING]   monitored_width {monitored_width}")
+    print(f"[LOADING]   monitored_height {monitored_height}")
+    print(f"[LOADING]   monitored_area {monitored_width * monitored_height}")
+    print("[LOADING]   L2R Image width in feet {:.0f} at {:.0f} from camera".format(l2r_frame_width_ft, L2R_DISTANCE))
+    print("[LOADING]   R2L Image width in feet {0:3.0f} at {1:3.0f} from camera".format(r2l_frame_width_ft, R2L_DISTANCE))
 
     # initialise the camera. 
     # Adjust vflip and hflip to reflect your camera's orientation
@@ -357,7 +357,7 @@ def main():
             #Set threshold and min area and save_buffer based on light readings
             lightlevel = my_map(measure_light(hsv),0,256,1,10)
 
-            if CONSOLE_DEBUGGER >= 3: print2log("[INFO] Light Level: %s" %  lightlevel)
+            if CONSOLE_DEBUGGER >= 3: print("[INFO] Light Level: %s" %  lightlevel)
 
             adjusted_min_area = get_min_area(lightlevel)
             adjusted_threshold = get_threshold(lightlevel)
@@ -413,17 +413,14 @@ def main():
                 text_on_image = 'Tracking'
                 counter = 0   # use to test later if saving with too few data points    
                 car_gap = secs_diff(initial_time, cap_time) 
-                # if CONSOLE_DEBUGGER >= 3: print2log([INFO] initial time = "+str(initial_time) + " " + "cap_time =" + str(cap_time) + " gap= " +\
-                #      str(car_gap) + " initial x= " + str(initial_x) + " initial_w= " + str(initial_w))
 
-                print2log("[TRACKING] x-chg    Secs   MPH  x-pos width  BA    DIR Count time")
-                # if gap between cars too low then probably seeing tail lights of current car
-                #but I might need to tweek this if find I'm not catching fast cars
+                if CONSOLE_DEBUGGER: print(f"[NOTICE] ~~~ Started: {timestamp} ~~~")
+                print("[TRACKING] x-chg    Secs   MPH  x-pos width  BA    DIR Count time")
+
                 if (car_gap<TOO_CLOSE):   
                     state = WAITING
-                    if CONSOLE_DEBUGGER: print2log("[NOTICE] Too Close")
-            else:  #state != WAITING
-                # compute the lapsed time
+                    if CONSOLE_DEBUGGER: print("[NOTICE] Too Close")
+            else: # compute the lapsed time
                 secs = secs_diff(timestamp,initial_time)
                 if secs >= 3: # Object taking too long to move across
                     state = WAITING
@@ -433,7 +430,7 @@ def main():
                     biggest_area = 0
                     rawCapture.truncate(0)
                     base_image = None
-                    if CONSOLE_DEBUGGER: print2log("[NOTICE] ~~~ Resetting ~~~")
+                    if CONSOLE_DEBUGGER: print("[NOTICE] ~~~ Resetting ~~~")
                     continue             
 
                 if state == TRACKING:       
@@ -451,7 +448,7 @@ def main():
                     speeds = np.append(speeds, mph)   #Append speed to array
 
                     if mph < 0:
-                        if CONSOLE_DEBUGGER: print2log("[INFO] Negative speed - stopping tracking"+ "{0:7.2f}".format(secs))
+                        if CONSOLE_DEBUGGER: print("[INFO] Negative speed - stopping tracking"+ "{0:7.2f}".format(secs))
                         if direction == LEFT_TO_RIGHT:
                             direction = RIGHT_TO_LEFT  #Reset correct direction
                             x=1  #Force save
@@ -459,7 +456,7 @@ def main():
                             direction = LEFT_TO_RIGHT  #Reset correct direction
                             x=monitored_width + MIN_SAVE_BUFFER  #Force save
                     else:
-                        print2log("[TRACKING] %4d  %7.2f  %3.0f  %4d  %5d %6d  %3s  %2d   %s" %
+                        print("[TRACKING] %4d  %7.2f  %3.0f  %4d  %5d %6d  %3s  %2d   %s" %
                             (abs_chg, secs, mph, x, w, biggest_area, direction, counter, timestamp.strftime("%H:%M:%S-%f")))
                     
                     real_y = upper_left_y + y
@@ -483,7 +480,7 @@ def main():
                             mean_speed = 0 #ignore it 
                             sd = 0
 
-                        if CONSOLE_DEBUGGER: print2log("[INFO] mean_speed: %.0f sd: %.0f" % (mean_speed, sd))
+                        if CONSOLE_DEBUGGER: print("[INFO] mean_speed: %.0f sd: %.0f" % (mean_speed, sd))
 
                         #Captime used for mqtt, csv, image filename. 
                         cap_time = datetime.datetime.now()                    
@@ -506,16 +503,16 @@ def main():
                 if (counter > 2): 
                     mean_speed = np.mean(speeds[:-1])   # Mean of all items except the last one
                     sd = np.std(speeds[:-1])  # remove last entry
-                    if CONSOLE_DEBUGGER: print2log("[NOTICE] Missed but saving")
+                    if CONSOLE_DEBUGGER: print("[NOTICE] Missed but saving")
                 elif (counter > 1):
                     mean_speed = speeds[-1] # use the last element in the array
                     sd = 99 # not trustworthy 
-                    if CONSOLE_DEBUGGER: print2log("[NOTICE] Missed but saving")
+                    if CONSOLE_DEBUGGER: print("[NOTICE] Missed but saving")
                 else:
                     mean_speed = 0 
                     sd = 0
 
-                if CONSOLE_DEBUGGER >= 3: print2log("[INFO] mean_speed: %.0f sd: %.0f" % (mean_speed, sd))
+                if CONSOLE_DEBUGGER >= 3: print("[INFO] mean_speed: %.0f sd: %.0f" % (mean_speed, sd))
 
                 cap_time = datetime.datetime.now()
                 
@@ -528,9 +525,9 @@ def main():
             if state != WAITING:
                 state = WAITING
                 direction = UNKNOWN
-                text_on_image = 'No Car Detected'
+                text_on_image = 'Waiting for another car'
                 counter = 0
-                if CONSOLE_DEBUGGER >= 3: print2log("[NOTICE] %s" % text_on_image)
+                if CONSOLE_DEBUGGER >= 3: print("[NOTICE] %s" % text_on_image)
                 
         # only update image and wait for a keypress when waiting for a car
         # This is required since waitkey slows processing.
@@ -561,7 +558,7 @@ def main():
                     t1 = time.process_time()
                     lightlevel = my_map(measure_light(hsv),0,256,1,10)
 
-                    if CONSOLE_DEBUGGER >= 3: print2log("[INFO] Light Level = " + str(lightlevel))
+                    if CONSOLE_DEBUGGER >= 3: print("[INFO] Light Level = " + str(lightlevel))
 
                     adjusted_min_area = get_min_area(lightlevel)
                     adjusted_threshold = get_threshold(lightlevel)
@@ -574,7 +571,7 @@ def main():
             # if the `q` key is pressed, break from the loop and terminate processing
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 calibration_image(image)
-                print2log("[EXIT] Quit at %s" % datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"))
+                print("[EXIT] Quit at %s" % datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"))
                 break
              
         # clear the stream in preparation for the next frame
@@ -584,8 +581,8 @@ def main():
 
 if __name__ == "__main__":
     # if not("RUNNING_PYCHARM" in os.environ):
-    #     print2log("123", os.environ)
+    #     print("123", os.environ)
     # else:
-    #     print2log("abc", os.environ)
+    #     print("abc", os.environ)
 
     main()

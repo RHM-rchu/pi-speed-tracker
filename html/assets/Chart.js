@@ -11413,6 +11413,9 @@ function skip(ticks, spacing, majorStart, majorEnd) {
 
 	for (i = Math.max(start, 0); i < end; i++) {
 		tick = ticks[i];
+		if (typeof tick === 'undefined') {
+			continue
+		}
 		if (i === next) {
 			tick._index = i;
 			count++;

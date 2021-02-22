@@ -2,25 +2,65 @@
     <ul>
         <li><a href="/log-view?log=web">Web</a></li>
         <li><a href="/log-view?log=speed">Speed Tracker</a></li>
+        <li><a href="/log-view?log=top">Server Resources</a></li>
     </ul>
 </div>
 <div class="container_log">
     <div class="preformatted">
         <pre class="" id="output"></pre>
     </div>
+
     <script>
+% if log == 'top':
+    const system_top = function() {
+        var output = document.getElementById('output');
+        var current_domain = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function()  {
+            if( xhr.readyState === 4 && xhr.status === 200) {
+                // console.log("readyState: " + xhr.readyState)
+                // console.log("status: " + xhr.status)
+                var data = xhr.responseText;;
+                var dataArray = data.split("\n");
+                dataArray = dataArray.slice(0,40);
+                data = dataArray.join("\n");
+                output.textContent = data
+            }
+        }
+        xhr.open('GET', current_domain + '/log-stream?log=${log}'); 
+    % if WEB_REQURE_AUTH == True:
+        xhr.setRequestHeader("Authorization", "Basic " + btoa("${WEB_USERNAME}:${WEB_PASSWORD}")); 
+    % endif
+        xhr.send();
+    }
+    const interval = setInterval(function() {
+       system_top()
+     }, 3000);
+
+% else:
+    setInterval(function() {
+        // output.textContent = xhr.responseText;
+        var data = xhr.responseText;;
+        var dataArray = data.split("\n");
+        dataArray = dataArray.slice(5,45);
+        data = dataArray.join("\n");
+        output.textContent = data
+    }, 1000);
+
     var output = document.getElementById('output');
     var current_domain = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
     var xhr = new XMLHttpRequest();
 
     xhr.open('GET', current_domain + '/log-stream?log=${log}'); 
-% if WEB_REQURE_AUTH == True:
-        xhr.setRequestHeader("Authorization", "Basic " + btoa("${WEB_USERNAME}:${WEB_PASSWORD}")); 
-% endif
+    % if WEB_REQURE_AUTH == True:
+    xhr.setRequestHeader("Authorization", "Basic " + btoa("${WEB_USERNAME}:${WEB_PASSWORD}")); 
+    % endif
     xhr.send();
 
     setInterval(function() {
         output.textContent = xhr.responseText;
     }, 1000);
+% endif
     </script>
 </div>

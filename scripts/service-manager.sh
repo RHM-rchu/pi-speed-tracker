@@ -105,15 +105,20 @@ app_restart() {
     sleep 1
     app_start $APP
 }
+app_status_pid() {
+    local theapp=$1
+    echo $(pgrep -fl "${theapp}" | grep -v 'service-manager' | awk '{print $1}');
+}
 app_status() {
     local APP=$1
     local tmppid
     if [[ -z "$APP" ]]; then
-        pid_speed=$(pgrep -f "${FILEVARMAP["speed"]}")
-        pid_web=$(pgrep -f "${FILEVARMAP["web"]}")
-    elif [[ ! -z APP ]]; then
-        tmppid=$(pgrep -f "${FILEVARMAP[$APP]}");
-        echo ${tmppid:-0};
+        # echo "------ ${FILEVARMAP["speed"}"
+        pid_speed=$(app_status_pid "${FILEVARMAP["speed"]}");
+        pid_web=$(app_status_pid "${FILEVARMAP["web"]}");
+    elif [[ ! -z $APP ]]; then
+        tmppid=$(app_status_pid "${FILEVARMAP[$APP]}")
+        echo "${tmppid:-0}";
         exit 0;
     fi
 }
@@ -149,9 +154,16 @@ done
 declare -A FILEVARMAP
 FILEVARMAP=( 
     ["speed"]="${APP_SPEED}" ["speed-tracker"]="${APP_SPEED}" ["${APP_SPEED}"]="${APP_SPEED}"  
+    ["speed-tracker"]="${APP_SPEED}" ["speed-tracker"]="${APP_SPEED}" ["${APP_SPEED}"]="${APP_SPEED}"  
+    ["speed-tracker.py"]="${APP_SPEED}" ["speed-tracker"]="${APP_SPEED}" ["${APP_SPEED}"]="${APP_SPEED}"  
     ["web"]="${APP_WEB}" ["web-server"]="${APP_WEB}" ["${APP_WEB}"]="${APP_WEB}" 
+    ["web-server.py"]="${APP_WEB}" ["web-server"]="${APP_WEB}" ["${APP_WEB}"]="${APP_WEB}" 
+    ["web-server"]="${APP_WEB}" ["web-server"]="${APP_WEB}" ["${APP_WEB}"]="${APP_WEB}" 
     )
 app_status
+
+# echo "${FILEVARMAP[$APP]}"
+# exit;
 
 #---------------------------- execute
 if [[ "$ACTION" = "start" ]]; then
@@ -162,7 +174,11 @@ elif [[ "$ACTION" = "restart"  ]]; then
     app_restart "${FILEVARMAP[$APP]}"
     sleep 2
 elif [[ "$ACTION" = "status"  ]]; then
-    app_status "${FILEVARMAP[$APP]}"
+    if [[ -v APP ]]; then
+        app_status "${FILEVARMAP[$APP]}"
+    else
+        app_status
+    fi
 fi
 
 #---------------------------- status

@@ -27,7 +27,6 @@ serverPort = 8080
 # DB
 #-----------------------------------------
 def get_data_speed_matrix(date_begin, date_end):
-    # global DB_TABLE
     ttl_records = 0
 
     for i, val in enumerate(WEB_SPEED_DICT):
@@ -105,8 +104,6 @@ def get_data_speed_list(
     return result, total_page, total
 
 def get_data_server_status(date_today, web_statuspage_limit=10):
-    # global DB_TABLE
-
     date_today = date_today.replace("-","")
     result = db_select_record(f'''SELECT count(date) as total 
         from {DB_TABLE}
@@ -137,7 +134,6 @@ def convert_list_to_int(thelist):
 
 
 def temp_change_primarykeys():
-    # global DB_TABLE
     local_table = "speedTracker"
     # milliseconds_since_epoch = datetime.datetime.now().timestamp() * 1000
     # print(f"---->{milliseconds_since_epoch}")
@@ -150,11 +146,9 @@ def temp_change_primarykeys():
             epoch = datetime.datetime.strptime(datetime_fmt, '%Y%m%d-%H%M%S.%f').timestamp() * 1000
             sql = f'''UPDATE {local_table} SET idx ='{epoch}' WHERE idx='{speed['idx']}';'''
             db_update_record(sql)
-            # print(f"{sql}")
         elif '-' not in speed['idx']:
             s = float(speed['idx']) / 1000.0
             dt = datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
-            # print(dt)
 
 def convert_millisec_2_time(epoch, fmt='%A %d %B %Y %I:%M:%S%p'):
     epoch = int(float(epoch))
@@ -369,15 +363,15 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
     return html
 
 def stream_log(self, log=None):
-    self.send_response(200)
-    self.send_header('Content-type','text/html')
-    self.end_headers()
+    # self.send_response(200)
+    # self.send_header('Content-type','text/html')
+    # self.end_headers()
     if log == 'web':
-        thelog = "py-web-server.log"
+        cmd = f"tail -f /var/log/speed/py-web-server.log"
+    elif log == 'top':
+        cmd = "top -b -1 -n 1 -u pi"
     else:
-        thelog = "speed_tracker.log"
-
-    cmd = f"tail -f /var/log/speed/{thelog}"
+        cmd = f"tail -f /var/log/speed/speed_tracker.log"
 
     process = subprocess.Popen(
         cmd,
@@ -387,6 +381,7 @@ def stream_log(self, log=None):
         encoding='utf-8',
         errors='replace'
     )
+    self.wfile.write(bytes('', "utf-8"))
 
     while True:
         realtime_output = process.stdout.readline()
@@ -396,7 +391,7 @@ def stream_log(self, log=None):
 
         if realtime_output:
             self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
-            # print(realtime_output.strip(), flush=True)
+    process.terminate()
 
 
 #-----------------------------------------
@@ -557,6 +552,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     self,
                     log=log,
                     )
+                return True
             else:
                 # speed list count by hr
                 html_body = render_html_speed_graph(

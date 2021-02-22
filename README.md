@@ -1,6 +1,6 @@
 # A Work in progress...
 
-## v0.4.5
+## v0.4.6
 
 ## Credits
 
@@ -168,8 +168,8 @@ This starts the webserver for real time graphs and data. If left to the default 
 ```
     - optional to auto start and top the speed `speed-tracker.py` script to monitor traffic (at night), start and stop. run `crontab -e`, and in your editor of choice
 ```
-0 7 * * * ${HOME}/repos/pi-speed-tracker/scripts/service-manager.sh -a sped -x start >/dev/null 2>&1
-0 17 * * * ${HOME}/repos/pi-speed-tracker/scripts/service-manager.sh -a sped -x stop >/dev/null 2>&1
+0 7 * * * ${HOME}/repos/pi-speed-tracker/scripts/service-manager.sh -a speed -x start >/dev/null 2>&1
+0 17 * * * ${HOME}/repos/pi-speed-tracker/scripts/service-manager.sh -a speed -x stop >/dev/null 2>&1
 ```
 in this case we start at 7am and stop at 5pm every day. Familiarize with crontab if you want to adjust. The change paths to your paths
 
