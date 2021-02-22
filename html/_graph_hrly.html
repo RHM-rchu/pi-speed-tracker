@@ -84,7 +84,6 @@ var chart1 = new Chart(ctx, {
   document.getElementById('update1').addEventListener('click', function() {
       var type = document.getElementById('type1').value;
       for (const [key, theLineGraph] of Object.entries(chart1.config.data.datasets)) {
-        console.log(key, theLineGraph);
         theLineGraph.type = type;
         theLineGraph.fill = true;
         theLineGraph.borderWidth = 2
@@ -155,8 +154,6 @@ var chart1 = new Chart(ctx, {
     document.getElementById('update2').addEventListener('click', function() {
         var type = document.getElementById('type2').value;
         for (const [key, theLineGraph] of Object.entries(chart2.config.data.datasets)) {
-          console.log(key, theLineGraph);
-          // chart2s[key] = theLineGraph
           theLineGraph.type = type;
           theLineGraph.fill = true;
           theLineGraph.borderWidth = 2

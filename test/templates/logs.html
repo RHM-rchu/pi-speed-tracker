@@ -1,0 +1,38 @@
+
+<style>
+/* Style the navigation menu */
+body {
+    margin-left: 40px;
+    padding: 15px;
+
+    /* make it look decent enough */
+    background: #232323;
+    color: #cdcdcd;
+}
+.preformatted {
+/*    font-family: monospace;
+    white-space: pre;*/
+    overflow:scroll; 
+    height:90%;
+    width:1200px;
+    display: flex; 
+    flex-direction: column-reverse;
+}
+</style>
+
+<pre class="preformatted" id="output"></pre>
+
+{{ log }} ----
+
+
+<script>
+    var output = document.getElementById('output');
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '{{ url_for('stream') }}');
+    xhr.send();
+
+    setInterval(function() {
+        output.textContent = xhr.responseText;
+    }, 1000);
+</script>

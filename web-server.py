@@ -4,7 +4,9 @@ import json
 import base64
 import datetime, time, os, sys
 import re
-# import http.server
+
+import subprocess, socketserver
+
 import socketserver
 from urllib.parse import urlparse, parse_qs
 from mako.template import Template
@@ -324,6 +326,15 @@ def render_html_speed_list(date_today,
         )
     return html
 
+def render_html_log(log=None):
+    htmllist = Template(filename='html/log-view.html')
+    html = htmllist.render(
+        WEB_REQURE_AUTH=WEB_REQURE_AUTH,
+        WEB_USERNAME=WEB_USERNAME,
+        WEB_PASSWORD=WEB_PASSWORD,
+        log=log,
+        )
+    return html
 def render_html_status(date_today, cam=None, web_statuspage_limit=None):
     latest_records, total = get_data_server_status(date_today, web_statuspage_limit)
 
@@ -355,6 +366,49 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
         web_statuspage_limit=web_statuspage_limit,
         )
     return html
+
+def stream_log(self, log=None):
+    self.send_response(200)
+    self.send_header('Content-type','text/html')
+    self.end_headers()
+    if log == 'web':
+        thelog = "py-web-server.log"
+    else:
+        thelog = "speed_tracker.log"
+
+    cmd = f"tail -f /var/log/speed/{thelog}"
+
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
+        encoding='utf-8',
+        errors='replace'
+    )
+
+    while True:
+        realtime_output = process.stdout.readline()
+
+        if realtime_output == '' and process.poll() is not None:
+            break
+
+        if realtime_output:
+            self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
+            # print(realtime_output.strip(), flush=True)
+
+    # ## run it ##
+    # p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+     
+    # ## But do not wait till netstat finish, start displaying output immediately ##
+    # while True:
+    #     out = p.stderr.read(1)
+    #     if out == '' and p.poll() != None:
+    #         break
+    #     if out != '':
+    #         sys.stdout.write(out)
+    #         sys.stdout.flush()
+
 
 #-----------------------------------------
 # web header and handles
@@ -472,6 +526,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             direction = None
             speed_range = None
             cam = None
+            log = None
 
 
             query_string = urlparse(self.path).query
@@ -490,7 +545,10 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 speed_range = query_components["speed_range"][0] 
             if 'cam' in query_components:
                 cam = query_components["cam"][0]  
+            if 'log' in query_components:
+                log = query_components["log"][0]  
 
+            html_body = ""
             if self.path.startswith('/list'):
                 html_body = render_html_speed_list(
                     date_today=date_today,
@@ -507,6 +565,15 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     date_today=date_today,
                     cam=cam,
                     web_statuspage_limit=WEB_STATUSPAGE_LIMIT,
+                    )
+            elif self.path.startswith('/log-view'):
+                html_body = render_html_log(
+                    log=log,
+                    )
+            elif self.path.startswith('/log-stream'):
+                stream_log(
+                    self,
+                    log=log,
                     )
             else:
                 # speed list count by hr
@@ -531,7 +598,8 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         return getvars
 
 
-class CustomHTTPServer(http.server.HTTPServer):
+class CustomHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    daemon_threads = True
     key = ''
 
     def __init__(self, address, handlerClass=theWebServer):
