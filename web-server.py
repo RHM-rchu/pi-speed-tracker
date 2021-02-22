@@ -335,6 +335,7 @@ def render_html_log(log=None):
         log=log,
         )
     return html
+
 def render_html_status(date_today, cam=None, web_statuspage_limit=None):
     latest_records, total = get_data_server_status(date_today, web_statuspage_limit)
 
@@ -397,18 +398,6 @@ def stream_log(self, log=None):
             self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
             # print(realtime_output.strip(), flush=True)
 
-    # ## run it ##
-    # p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
-     
-    # ## But do not wait till netstat finish, start displaying output immediately ##
-    # while True:
-    #     out = p.stderr.read(1)
-    #     if out == '' and p.poll() != None:
-    #         break
-    #     if out != '':
-    #         sys.stdout.write(out)
-    #         sys.stdout.flush()
-
 
 #-----------------------------------------
 # web header and handles
@@ -458,15 +447,6 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     'get_vars': str(getvars)
                 }
 
-                base_path = urlparse(self.path).path
-                if base_path == '/path1':
-                    # Do some work
-                    pass
-                elif base_path == '/path2':
-                    # Do some work
-                    pass
-
-                # self.wfile.write(bytes(json.dumps(response), 'utf-8'))
             else:
                 self.do_AUTHHEAD()
 
@@ -527,6 +507,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             speed_range = None
             cam = None
             log = None
+            metarefresh = True
 
 
             query_string = urlparse(self.path).query
@@ -570,6 +551,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 html_body = render_html_log(
                     log=log,
                     )
+                metarefresh = False
             elif self.path.startswith('/log-stream'):
                 stream_log(
                     self,
@@ -586,6 +568,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
 
             htmlwrapper = Template(filename='html/wrapper.html')
             html = htmlwrapper.render(
+                metarefresh=metarefresh,
                 body=html_body,
                 page_refresh=WEB_AUTO_REFRESH
                 )

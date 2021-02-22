@@ -434,3 +434,55 @@ div.prev_img:hover {
 .toggle-btn.active>.circle {
     margin-left: 22px;
 }
+
+
+/* Log Viewer ---------------------------*/
+div.container_nav ul {
+    list-style-type: none;
+}
+.container_log {
+    margin-left: 40px;
+    padding: 15px;
+
+    /* make it look decent enough */
+    background: #232323;
+    color: #cdcdcd;
+}
+
+a:link, a:visited, a:hover, a:focus, a:active {
+    color: #666666;
+}
+
+.container_log .preformatted {
+    /*    font-family: monospace;
+    white-space: pre;*/
+    overflow: scroll;
+    height: 640px;
+    max-height: 640px;
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    overflow-x: hidden;
+
+}
+
+.container_log .preformatted::-webkit-scrollbar {
+    width: 12px;
+    /* width of the entire scrollbar */
+}
+
+.container_log .preformatted::-webkit-scrollbar-track {
+    background: #cdcdcd;
+    /* color of the tracking area */
+}
+
+.container_log .preformatted::-webkit-scrollbar-thumb {
+    background-color: orange;
+    /* color of the scroll thumb */
+    border-radius: 24px;
+    /* roundness of the scroll thumb */
+    border: 1px solid #cdcdcd;
+    /* creates padding around scroll thumb */
+}
+
+

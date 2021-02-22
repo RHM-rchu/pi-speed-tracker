@@ -1,65 +1,26 @@
-
-<style>
-/* Style the navigation menu */
-body {
-    margin-left: 40px;
-    padding: 15px;
-
-    /* make it look decent enough */
-    background: #232323;
-    color: #cdcdcd;
-}
-a:link{
-    color:#FFFFFF;
-}
-.preformatted {
-/*    font-family: monospace;
-    white-space: pre;*/
-    overflow:scroll; 
-    height:640px;
-    max-height: 640px;
-    width:1200px;
-    display: flex; 
-    flex-direction: column-reverse;
-    overflow-x: hidden;
-
-}
-.preformatted::-webkit-scrollbar {
-  width: 12px;               /* width of the entire scrollbar */
-}
-
-.preformatted::-webkit-scrollbar-track {
-  background: orange;        /* color of the tracking area */
-}
-
-.preformatted::-webkit-scrollbar-thumb {
-  background-color: #cdcdcd;    /* color of the scroll thumb */
-  border-radius: 24px;       /* roundness of the scroll thumb */
-  border: 1px solid #orange;  /* creates padding around scroll thumb */
-}
-</style>
-
-<ul>
-    <li><a href="/log-view?log=web">Web</a></li>
-    <li><a href="/log-view?log=speed">Speed Tracker</a></li>
-</ul>
-<div class="preformatted">
-<pre class="" id="output"></pre>
+<div class="container_nav">
+    <ul>
+        <li><a href="/log-view?log=web">Web</a></li>
+        <li><a href="/log-view?log=speed">Speed Tracker</a></li>
+    </ul>
 </div>
-
-
-<script>
+<div class="container_log">
+    <div class="preformatted">
+        <pre class="" id="output"></pre>
+    </div>
+    <script>
     var output = document.getElementById('output');
-    var current_domain = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
+    var current_domain = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
     var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', current_domain + '/log-stream?log=${log}');
+    xhr.open('GET', current_domain + '/log-stream?log=${log}'); 
 % if WEB_REQURE_AUTH == True:
-    xhr.setRequestHeader("Authorization", "Basic " + btoa("${WEB_USERNAME}:${WEB_PASSWORD}"));
+        xhr.setRequestHeader("Authorization", "Basic " + btoa("${WEB_USERNAME}:${WEB_PASSWORD}")); 
 % endif
     xhr.send();
 
     setInterval(function() {
         output.textContent = xhr.responseText;
     }, 1000);
-</script>
+    </script>
+</div>
