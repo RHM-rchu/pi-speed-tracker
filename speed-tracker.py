@@ -163,6 +163,9 @@ def get_threshold(light):
 def store_image(cap_time, image, mean_speed):
     s_image = image[upper_left_y:lower_right_y,upper_left_x:lower_right_x]
     w, h, _ = s_image.shape
+    cntr_x = w
+    cntr_y = int(h * 0.05)
+    spd_fnt_sz = 1
     txt_date = cap_time.strftime("%A %d %B %Y %I:%M:%S%p")
     txt_speed = "%.0f mph" % mean_speed
     media_path = PATH_TO_IMAGES + '/' + cap_time.strftime("%Y/%m/%d")
@@ -174,13 +177,12 @@ def store_image(cap_time, image, mean_speed):
 
     cv2.putText(s_image, txt_date,
         (10, s_image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
-    size, base = cv2.getTextSize(txt_speed, cv2.FONT_HERSHEY_SIMPLEX, 1.20, 2)
+    # size, base = cv2.getTextSize(txt_speed, cv2.FONT_HERSHEY_SIMPLEX, spd_fnt_sz, 2)
     # then center it horizontally on the image
-    cntr_x = int((w / 2))
     cv2.putText(s_image, txt_speed,
-        (cntr_x , int(h * 0.1)), cv2.FONT_HERSHEY_SIMPLEX, 1.20, (0, 0, 0), 3)
+        (cntr_x , cntr_y), cv2.FONT_HERSHEY_SIMPLEX, spd_fnt_sz, (0, 0, 0), 3)
     cv2.putText(s_image, txt_speed,
-        (cntr_x , int(h * 0.1)), cv2.FONT_HERSHEY_SIMPLEX, 1.20, (0, 255, 0), 2)
+        (cntr_x , cntr_y), cv2.FONT_HERSHEY_SIMPLEX, spd_fnt_sz, (0, 255, 0), 2)
     # Save the image
     cv2.imwrite(imageFilename_full, s_image)
     return imageFilename_full

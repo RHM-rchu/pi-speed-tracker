@@ -28,9 +28,11 @@ serverPort = 8080
 #-----------------------------------------
 def get_data_speed_matrix(date_begin, date_end):
     ttl_records = 0
+    webSpeeDict = [None] * len(WEB_SPEED_DICT)
 
     for i, val in enumerate(WEB_SPEED_DICT):
-        WEB_SPEED_DICT[i]['lists'] = [0 for x in range(0, 24)]
+        webSpeeDict[i] = val.copy()
+        webSpeeDict[i]['lists'] = [0 for x in range(0, 24)]
 
     datebegin = date_begin.replace("-","")
     dateend = date_end.replace("-","")
@@ -44,14 +46,13 @@ def get_data_speed_matrix(date_begin, date_end):
             hr = int(row['hour'])
             sp = int(f"{float(row['mean_speed']):.0f}")
 
-            for i, val in enumerate(WEB_SPEED_DICT):
-                if sp >= WEB_SPEED_DICT[i]['speed_low'] and sp <= WEB_SPEED_DICT[i]['speed_high']:
-                    WEB_SPEED_DICT[i]['lists'][(hr - 1)] += 1
-                    WEB_SPEED_DICT[i]['total'] = sum(WEB_SPEED_DICT[i]['lists'])
+            for i, val in enumerate(webSpeeDict):
+                if sp >= webSpeeDict[i]['speed_low'] and sp <= webSpeeDict[i]['speed_high']:
+                    webSpeeDict[i]['lists'][(hr - 1)] += 1
+                    webSpeeDict[i]['total'] = sum(webSpeeDict[i]['lists'])
                     ttl_records += 1
 
-
-    return (WEB_SPEED_DICT, ttl_records)
+    return (webSpeeDict, ttl_records)
 
 def get_data_speed_list(
         date_begin, 
@@ -197,7 +198,7 @@ def render_html_speed_graph(
     graph_hrly_datas = {}
     total = ""
     percent = 0
-    for i, val in enumerate(WEB_SPEED_DICT):
+    for i, val in enumerate(matrix):
         if 'total' in val: total = val['total']
         else: total = 0
 
@@ -205,7 +206,7 @@ def render_html_speed_graph(
             percent = "{0}".format(round(total/ttl_records*100, 2))
         else: 
             percent = 0
-
+            
         speed_lists[val['name']] = {
             "count": total, 
             "rgb":val['rgb'], 
@@ -215,7 +216,6 @@ def render_html_speed_graph(
             "rgb":val['rgb'], 
             "data":[str(element) for element in val['lists']],
             }
-
 
     form=render_html_form(
         date_today=date_today, 
@@ -390,8 +390,17 @@ def stream_log(self, log=None):
             break
 
         if realtime_output:
-            self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
-    process.terminate()
+                try:
+                    self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
+                except:
+                    # print("[NOTICE] wfile Nothing to write")
+                    None
+            # self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
+    try:
+        process.terminate()
+    except:
+        print("[NOTICE] process.terminate() was not needed")
+
 
 
 #-----------------------------------------

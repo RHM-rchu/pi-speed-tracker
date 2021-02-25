@@ -448,6 +448,7 @@ div.container_nav ul li{
 .container_log {
     margin-left: 40px;
     padding: 15px;
+    white-space: pre-wrap;
 
     /* make it look decent enough */
     background: #232323;
@@ -463,7 +464,6 @@ a:link, a:visited, a:hover, a:focus, a:active {
     white-space: pre;*/
     overflow: scroll;
     height: 640px;
-    max-height: 640px;
     width: 100%;
     display: flex;
     flex-direction: column-reverse;
