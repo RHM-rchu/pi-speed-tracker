@@ -369,11 +369,11 @@ def stream_log(self, log=None):
     # self.send_header('Content-type','text/html')
     # self.end_headers()
     if log == 'web':
-        cmd = f"tail -f {LOG_FILE}"
+        cmd = f"tail -f {LOG_FILE_WEB}"
     elif log == 'top':
         cmd = "top -b -1 -n 1 -u pi"
     else:
-        cmd = f"tail -f {LOG_FILE_WEB}"
+        cmd = f"tail -f {LOG_FILE}"
 
     process = subprocess.Popen(
         cmd,

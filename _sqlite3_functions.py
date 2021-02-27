@@ -4,13 +4,15 @@ import sys
 
 from _configs import *
 
+os.makedirs(DB_DIR_PATH, exist_ok=True)
+logfile_base = os.path.dirname(os.path.abspath(LOG_FILE))
+os.makedirs(logfile_base, exist_ok=True)
 logfile = open(LOG_FILE,'w', 1)
 sys.stdout = logfile
 sys.stdin = logfile
 sys.stderr = logfile
 
-DB_DIR_PATH
-os.makedirs(DB_DIR_PATH, exist_ok=True)
+
 
 #-----------------------------------------
 # SQLITE

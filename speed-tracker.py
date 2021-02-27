@@ -354,7 +354,7 @@ def main():
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   monitored_height {monitored_height}")
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   monitored_area {monitored_width * monitored_height}")
     if CONSOLE_DEBUGGER >= 2: print("[LOADING]   %s Image width in feet %.0f at %0f from camera" % (LEFT_TO_RIGHT, l2r_frame_width_ft, L2R_DISTANCE))
-    if CONSOLE_DEBUGGER >= 2: print("[LOADING]   %s Image width in feet %3.0f at %3.0f}from camera" % (RIGHT_TO_LEFT, r2l_frame_width_ft, R2L_DISTANCE))
+    if CONSOLE_DEBUGGER >= 2: print("[LOADING]   %s Image width in feet %3.0f at %3.0f from camera" % (RIGHT_TO_LEFT, r2l_frame_width_ft, R2L_DISTANCE))
 
     # initialise the camera. 
     # Adjust vflip and hflip to reflect your camera's orientation
