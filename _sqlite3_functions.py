@@ -97,7 +97,7 @@ def db_check(db_file):
         print("[ERROR][DB] Failed: sqlite3 Not DB Format ", db_file)
         return None
     conn.commit()
-    if CONSOLE_DEBUGGER >= 3: print("[NOTICE][DB] Success: sqlite3 Connected to DB ", db_file)
+    if CONSOLE_DEBUGGER >= 4: print("[NOTICE][DB] Success: sqlite3 Connected to DB ", db_file)
     return conn
 
 def db_save_record(speed_data):
@@ -111,7 +111,7 @@ def db_save_record(speed_data):
         print("[ERROR][DB] Failed: To INSERT Speed Data into TABLE ", DB_TABLE)
         print("Err Msg: ", e)
     else:
-        if CONSOLE_DEBUGGER >= 3: print("[NOTICE][DB] SQL - Inserted sqlite3 Data Row into ", DB_PATH)
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE][DB] SQL - Inserted sqlite3 Data Row into ", DB_PATH)
 
 def db_update_record(sql_cmd):
     try:
@@ -123,12 +123,12 @@ def db_update_record(sql_cmd):
         print("[ERROR][DB] Failed: To UPDATE Speed Data into TABLE ", DB_TABLE)
         print("Err Msg: ", e)
     else:
-        if CONSOLE_DEBUGGER >= 3: print("[NOTICE][DB] SQL - Updated sqlite3 Data Row into ", DB_PATH)
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE][DB] SQL - Updated sqlite3 Data Row into ", DB_PATH)
 
 def db_select_record(sql_cmd):
     try:
         db_conn = db_check(DB_PATH)
-        if CONSOLE_DEBUGGER >= 3: print(sql_cmd.replace('\n', ' ').replace('\r', ''))
+        if CONSOLE_DEBUGGER >= 4: print("[SQL] " + sql_cmd.replace('\n', ' ').replace('\r', ''))
         query = db_conn.execute(sql_cmd)
         colname = [ d[0] for d in query.description ]
         result = [ dict(zip(colname, r)) for r in query.fetchall() ]
@@ -138,7 +138,7 @@ def db_select_record(sql_cmd):
         print("[ERROR][DB] Failed: To Select Speed Data from ", DB_TABLE)
         print("Err Msg: ", e)
     else:
-        if CONSOLE_DEBUGGER >= 3: print("[NOTICE][DB] SQL - Select sqlite3 Data ", DB_PATH)
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE][DB] SQL - Select sqlite3 Data ", DB_PATH)
         return result
 
 
@@ -150,7 +150,7 @@ if db_conn is not None:
       print("[ERROR][DB] Failed: Connect to sqlite3 DB ", DB_PATH)
       db_is_open = False
   else:
-      if CONSOLE_DEBUGGER >= 3: print("[NOTICE][DB] sqlite3 DB is Open ", DB_PATH)
+      if CONSOLE_DEBUGGER >= 4: print("[NOTICE][DB] sqlite3 DB is Open ", DB_PATH)
       db_cur = db_conn.cursor()  # Set cursor position
       db_is_open = True
 #-----------------------------------------

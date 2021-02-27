@@ -4,6 +4,7 @@
 # define some constants
 L2R_DISTANCE = 120                      #<---- enter your distance to road in ft - bottom left corner from calibrator.py, step (8) of readme
 R2L_DISTANCE = 120                      #<---- enter your distance to road in ft - bottom right corner from calibrator.py, step (8) of readme
+CROP_OffSET = 80                        #<---- sift the snapshot over by 'n'px left or right on final capture to mitigate cropping the target
 SAVE_CSV = True                         #<---- record the results in .csv format in carspeed_(date).csv
 MIN_SPEED_SAVE = 1                      #<---- enter the minimum speed for publishing to MQTT broker and saving to CSV
 MAX_SPEED_SAVE = 90                     #<---- enter the maximum speed for publishing to MQTT broker and saving to CSV
@@ -77,5 +78,5 @@ DB_DIR_PATH = "db"
 DB_NAME = "speed-tracker.sqlite3"
 DB_TABLE="speeds"
 DB_PATH = DB_DIR_PATH + '/' +  DB_NAME
-LOG_FILE='/var/log/speed/speed_tracker.log'
-LOG_FILE_WEB='/var/log/speed/py-web-server.log'
+LOG_FILE='log/speed_tracker.log'
+LOG_FILE_WEB='log/py-web-server.log'

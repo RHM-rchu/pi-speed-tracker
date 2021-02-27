@@ -103,7 +103,7 @@ def click_and_crop(event, x, y, flag, image):
                 coords_to_file = f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}'
                 print(coords_to_file)
                 #--- write to file
-                f = open('_configs_coords.py', 'a')
+                f = open('_configs_coords.py', 'r+')
                 f.write(coords_to_file+"\n")
                 f.close
                 

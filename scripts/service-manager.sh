@@ -71,11 +71,11 @@ app_start() {
     # no app specified do both
     # only if pid greater than 0 ignore
     if [[ -z "$APP" ]]; then 
-        [ "${pid_speed:-0}" -gt "0" ] || python $APP_SPEED --show_image=False &
+        [ "${pid_speed:-0}" -gt "0" ] || python $APP_SPEED --show_image=off &
         [ "${pid_web:-0}" -gt "0" ] || python $APP_WEB &
     else
         if [[ "${APP}" == "${APP_SPEED}" ]]; then
-            [ "${pid_speed:-0}" -gt "0" ] || python $APP --show_image=False &
+            [ "${pid_speed:-0}" -gt "0" ] || python $APP --show_image=off &
         elif [[ "${APP}" == "${APP_WEB}" ]]; then
             [ "${pid_web:-0}" -gt "0" ] || python $APP &
         fi

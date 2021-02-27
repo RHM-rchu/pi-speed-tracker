@@ -1,6 +1,6 @@
 # A Work in progress...
 
-## v0.4.6
+## v0.7.0
 
 ## Credits
 
@@ -58,6 +58,11 @@ Monitor Cam status - can turn Cam on/off with the toggle switch in the header
 * Opencv 4.1.0.25
 * python3
 * Not a whole lot but a little terminal skills is nice
+
+
+
+[Installation Instruction](1.install.md)
+[Setup Instruction](2.setup.md)
 
 ## Usage
 Anytime we need to run a command, assume it's in the terminal as your user account unless specified otherwise.

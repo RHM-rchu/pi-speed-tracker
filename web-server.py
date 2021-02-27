@@ -14,6 +14,8 @@ from mako.template import Template
 from _configs import *
 from _sqlite3_functions import *
 
+logfile_base = os.path.dirname(os.path.abspath(LOG_FILE_WEB))
+os.makedirs(logfile_base, exist_ok=True)
 logfile = open(LOG_FILE_WEB,'w', 1)
 sys.stdout = logfile
 sys.stdin = logfile
@@ -367,11 +369,11 @@ def stream_log(self, log=None):
     # self.send_header('Content-type','text/html')
     # self.end_headers()
     if log == 'web':
-        cmd = f"tail -f /var/log/speed/py-web-server.log"
+        cmd = f"tail -f {LOG_FILE}"
     elif log == 'top':
         cmd = "top -b -1 -n 1 -u pi"
     else:
-        cmd = f"tail -f /var/log/speed/speed_tracker.log"
+        cmd = f"tail -f {LOG_FILE_WEB}"
 
     process = subprocess.Popen(
         cmd,
