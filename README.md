@@ -49,7 +49,7 @@ media
 
 ### Monitor Cam status 
 - Query and cycle through each record
-![Query and view records](html/assets/sample_web.png?raw=true "Query and view records")
+![Query and view records](html/assets/sample_query-review.png?raw=true "Query and view records")
 
 ### Monitor Cam status 
 - Turn Cam on/off with the toggle switch
