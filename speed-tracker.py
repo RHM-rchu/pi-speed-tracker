@@ -297,15 +297,6 @@ def overlay_transparent(bgimg, fgimg, xmin = 0, ymin = 0,trans_percent = 1):
     result[ymin:ymin+fgimg.shape[0], xmin:xmin+fgimg.shape[1]] = roi_over
     return result
 
-# def print2log(message=''):
-#     global LOG_FILE
-#     print(message)
-#     f = open(LOG_FILE, 'a')
-#     f.write(message+"\n")
-#     f.close
-
-
-
 if SAVE_CSV:
     csvfileout = CSV_DIR_PATH + "/carspeed_{}.csv".format(datetime.datetime.now().strftime("%Y%m%d_%H%M"))
     record_speed(csvfileout, 'DateTime,Speed,Direction, Counter,SD, Image')
@@ -627,9 +618,4 @@ def main():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    # if not("RUNNING_PYCHARM" in os.environ):
-    #     print("123", os.environ)
-    # else:
-    #     print("abc", os.environ)
-
     main()
