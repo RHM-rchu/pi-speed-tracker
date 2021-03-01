@@ -1,4 +1,80 @@
 <script src="/html/assets/modal.js"></script>
+
+
+
+
+<%
+l2r = 0
+r2l = 0
+%>
+% for speed in speed_dict: 
+  % if speed['direction'] == LEFT_TO_RIGHT:
+    <%
+        l2r+=1
+    %>
+  % else:
+    <%
+        r2l+=1
+    %>
+  % endif
+% endfor 
+    <div id="canvas-holder" style="width:30%">
+        <canvas id="chart-area"></canvas>
+    </div>
+    <script>
+        var config = {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [
+                        ${r2l},
+                        ${l2r},
+                    ],
+                    borderColor: [
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(75, 192, 192, 1)',
+                    ],
+                    backgroundColor: [
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                    ],
+                    label: 'Dataset 1'
+                }],
+                labels: [
+                    '${RIGHT_TO_LEFT}',
+                    '${LEFT_TO_RIGHT}',
+                ]
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Direction'
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+                circumference: Math.PI,
+                rotation: -Math.PI,
+            }
+        };
+
+        window.onload = function() {
+            var ctx = document.getElementById('chart-area').getContext('2d');
+            window.myDoughnut = new Chart(ctx, config);
+        };
+
+    </script>
+
+
+<br><br>
+
+
+
 <div class="graph_container">
     <canvas id="chart1"></canvas>
 </div>
@@ -145,20 +221,6 @@ var cfg = {
                 }
             }]
         },
-        // tooltips: {
-        //     intersect: false,
-        //     mode: 'index',
-        //     callbacks: {
-        //         label: function(tooltipItem, myData) {
-        //             var label = myData.datasets[tooltipItem.datasetIndex].label || '';
-        //             if (label) {
-        //                 label += ': ';
-        //             }
-        //             label += parseFloat(tooltipItem.value).toFixed(2);
-        //             return label;
-        //         }
-        //     }
-        // }
     }
 };
 
@@ -176,6 +238,17 @@ document.getElementById('update').addEventListener('click', function() {
     chart.update();
 });
 </script>
+
+
+
+
+<br><br>
+
+
+
+
+
+
 
 
 <div id="modal">

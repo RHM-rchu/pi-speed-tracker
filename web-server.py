@@ -395,7 +395,6 @@ def render_html_day_of_week(
     #     for  val in WEB_SPEED_DICT:
     #         dow_stats[dow]['categories'][val['name']]['percentage'] = round(dow_stats[dow]['categories'][val['name']]['count']/dow_stats[dow]['count']*100, 1)
 
-    print(dow_stats)
 
     form=render_html_form(
         date_today=date_today, 
