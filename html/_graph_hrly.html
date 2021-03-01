@@ -16,7 +16,6 @@ ${form}
   </select>
   <button id="update1">update</button>
   </div>
-
   <script>
 var ctx = document.getElementById("speed");
 
@@ -53,7 +52,7 @@ var chart1 = new Chart(ctx, {
 % endfor
         ],
         datasets: [{
-            label: '${speed_limit} mph - Speed ranges',
+            label: 'Count by Categories',
             data: [
 % for a in percent_sp_list:
               ${percent_sp_list[a]['count']},
@@ -61,20 +60,14 @@ var chart1 = new Chart(ctx, {
 
             ],
             backgroundColor: [
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
+% for a in percent_sp_list:
+                'rgba(${percent_sp_list[a]['rgb']}, 0.2)',
+% endfor
             ],
             borderColor: [
-                'rgba(75, 192, 192, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(255,99,132,1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
+% for a in percent_sp_list:
+                'rgba(${percent_sp_list[a]['rgb']}, 1)',
+% endfor
             ],
             borderWidth: 1
         }]

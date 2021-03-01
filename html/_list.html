@@ -88,6 +88,12 @@ var cfg = {
         scales: {
             xAxes: [{
                 type: 'time',
+                time: {
+                   unit: 'second',
+                   displayFormats: {
+                      hour: 'h:mm:ssa'
+                   }
+                },
                 distribution: 'series',
                 offset: true,
                 ticks: {
@@ -139,20 +145,20 @@ var cfg = {
                 }
             }]
         },
-        tooltips: {
-            intersect: false,
-            mode: 'index',
-            callbacks: {
-                label: function(tooltipItem, myData) {
-                    var label = myData.datasets[tooltipItem.datasetIndex].label || '';
-                    if (label) {
-                        label += ': ';
-                    }
-                    label += parseFloat(tooltipItem.value).toFixed(2);
-                    return label;
-                }
-            }
-        }
+        // tooltips: {
+        //     intersect: false,
+        //     mode: 'index',
+        //     callbacks: {
+        //         label: function(tooltipItem, myData) {
+        //             var label = myData.datasets[tooltipItem.datasetIndex].label || '';
+        //             if (label) {
+        //                 label += ': ';
+        //             }
+        //             label += parseFloat(tooltipItem.value).toFixed(2);
+        //             return label;
+        //         }
+        //     }
+        // }
     }
 };
 
@@ -215,7 +221,7 @@ document.getElementById('update').addEventListener('click', function() {
     </thead>
     % for row in speed_lists:
     <tr>
-        <td nowrap><a data-id="/${row['image_path']}" class="showModal" id="${row['id']}" alt="${row['mean_speed']}mph - ${row['direction']} - ${row['date_full']}"><img src="/html/assets/img.png"></a></td>
+        <td class="firstcol"><a data-id="/${row['image_path']}" class="showModal" id="${row['id']}" alt="${row['mean_speed']}mph - ${row['direction']} - ${row['date_full']}"><img src="/html/assets/img.png"></a></td>
         <td>${row['date_full']}</td>
         <td>${row['mean_speed']}</td>
         <td>${row['direction']}</td>

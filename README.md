@@ -9,7 +9,7 @@ Full program details at:   https://gregtinkers.wordpress.com/2016/03/25/car-spee
 
 ## Description
 
-This program for the Raspberry Pi 4 running Raspbian determines the speed of cars moving through the Picamera's field of view. This is meant to be in side profile view so cars cross the field of view from left to right and right to left. Data is gathered in a few different ways, CSV File, SQLight3 database, and an image is saved.
+This program for the Raspberry Pi (any) running Raspbian with Desktop to determines the speed of cars moving through the Picamera's field of view. This is meant to be in side profile view where cars move left to right and right to left. Data is gathered in a few different ways, CSV File, SQLight3 database, and an image is saved.
 
 ![Sample Image](html/assets/sample_snap.jpg?raw=true "Sample Image")
 
@@ -60,11 +60,14 @@ media
 ### Web monitoring and live log view
 
 #### track what the app is logging in real time as cars go by
-![Speed Tracking Logs](html/assets/sample_log_placeholder.png?raw=true "Speed Tracking Logs")
+![Speed Tracking Logs](html/assets/sample_log_speed.png?raw=true "Speed Tracking Logs")
+
+#### track what the app is logging in real time as cars go by
+![Web Server Logs](html/assets/sample_log_web.png?raw=true "Web Server Logs")
 
 
 #### Check on Server resource and resource usage, with the `top` command in a web browser
-![Server Status](html/assets/sample_log_placeholder.png?raw=true "Server Status")
+![Server Status](html/assets/sample_log_top.png?raw=true "Server Status")
 
 ## Requirements
 

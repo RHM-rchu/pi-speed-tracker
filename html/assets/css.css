@@ -191,17 +191,21 @@ table tr:not(.fble_htr) td:first-child::before {
 
 table.paleBlueRows {
     font-family: "Times New Roman", Times, serif;
-    border: 1px solid #FFFFFF;
+    border: 1px;
     width: 350px;
     height: 200px;
-    text-align: center;
+    text-align: left;
     border-collapse: collapse;
-    background: #fff;
+    /*background: #fff;*/
 }
 
+table.paleBlueRows td.firstcol {
+    white-space:nowrap;
+    text-align: left;
+}
 table.paleBlueRows td,
 table.paleBlueRows th {
-    border: 1px solid #FFFFFF;
+    border: 1px;
     padding: 3px 2px;
     vertical-align: top;
 }
@@ -327,6 +331,7 @@ table.cinereousTable tfoot td {
     -moz-box-shadow: 3px 3px 5px 6px #ccc;
     /* Firefox 3.5 - 3.6 */
     box-shadow: 3px 3px 5px 6px #ccc;
+    z-index: 10;
     /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */
 }
 

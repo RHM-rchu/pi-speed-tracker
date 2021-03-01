@@ -1,0 +1,234 @@
+
+
+
+${form}
+
+
+
+    <div class="graph_container">
+        <canvas id="canvasSpeedGroups2"></canvas>
+    </div>
+
+
+<!--   <div class="change_graph">
+  Chart Type:
+  <select id="type2">
+      <option value="bar">Bar</option>
+      <option value="line">Line</option>
+      <option value="bubble">bubble</option>
+  </select>
+  <button id="update2">update</button>
+  </div>
+ -->
+
+  <script>
+    // window.onload = function() {
+
+      var chart2 = new Chart(document.getElementById("canvasSpeedGroups2"), {
+        type: 'bar',
+        data: {
+      labels: [
+% for dow in DOW:
+                        '${dow}',
+% endfor
+      ],
+      datasets: [
+% for ds in day_of_week:
+      {
+        label: '${ds}',
+        backgroundColor: 'rgba(${day_of_week[ds]['rgb']}, 0.2)',
+        borderColor: 'rgba(${day_of_week[ds]['rgb']}, 1)',
+        data: [
+% for dow in DOW:
+          '${day_of_week[ds][dow]['percentage_dow']}',
+% endfor
+        ]
+      }, 
+% endfor
+      ],
+
+    },
+        options: {
+          title: {
+            display: true,
+            text: 'Percentage or each category by day or week'
+          },
+          tooltips: {
+            mode: 'index',
+            intersect: false
+          },
+          responsive: true,
+          scales: {
+            xAxes: [{
+              stacked: true,
+            }],
+            yAxes: [{
+              stacked: true
+            }]
+          }
+        }
+      });
+      document.getElementById('update2').addEventListener('click', function() {
+          var type = document.getElementById('type2').value;
+          for (const [key, theLineGraph] of Object.entries(chart2.config.data.datasets)) {
+            theLineGraph.type = type;
+            // theLineGraph.fill = true;
+            // theLineGraph.borderWidth = 2
+          }
+          chart1.update();
+      });
+    // };
+  </script>
+
+
+
+<br>
+<br>
+
+
+
+
+    <div class="graph_container">
+        <canvas id="canvasSpeedGroups"></canvas>
+    </div>
+
+
+  <div class="change_graph">
+  Chart Type:
+  <select id="type1">
+      <option value="bar">Bar</option>
+      <option value="line">Line</option>
+      <option value="bubble">bubble</option>
+  </select>
+  <button id="update1">update</button>
+  </div>
+
+    <script type="text/javascript">
+
+    // window.onload = function() {
+      var chart1 = new Chart(document.getElementById("canvasSpeedGroups"), {
+          type: 'bar',
+          data: {
+              datasets: [ 
+
+% for key in day_of_week: 
+                  {
+                      label: '${day_of_week[key]['name']}',
+                      backgroundColor: 'rgba(${day_of_week[key]['rgb']}, 0.2)',
+                      borderColor: 'rgba(${day_of_week[key]['rgb']}, 1)',
+                      data: [
+
+% for dow in DOW:
+                        '${day_of_week[key][dow]['count']}',
+% endfor
+                      ],
+                      fill: true,
+                      borderWidth: 2,
+                  },
+% endfor
+              ]
+          },
+          options: {
+              scales: {
+                  xAxes: [{
+                      type: 'time',
+                      offset: true,
+                      time: {
+                          parser: 'YYYY-MM-DD HH:mm:ss',
+                          unit: 'day',
+                          displayFormats: {
+                              day: 'ddd'
+                          },
+                          min: '2017-10-01 00:00:00',
+                          max: '2017-10-07 23:59:59'
+                      },
+                      ticks: {
+                          source: 'data'
+                      }
+                  }]
+              },
+              legend: {
+                  display: true
+              },
+              animation: {
+                  duration: 0,
+              },
+              hover: {
+                  animationDuration: 0,
+              },
+              responsiveAnimationDuration: 0,
+              title: {
+                display: true,
+                text: 'Count by Day of Week of each category'
+              }
+          },
+          plugins: [{
+              beforeInit: function(chart) {
+                  var time = chart.options.scales.xAxes[0].time, // 'time' object reference
+                      timeDiff = moment(time.max).diff(moment(time.min), 'd'); // difference (in days) between min and max date
+                  // populate 'labels' array
+                  // (create a date string for each date between min and max, inclusive)
+                  for (i = 0; i <= timeDiff; i++) {
+                      var _label = moment(time.min).add(i, 'd').format('YYYY-MM-DD HH:mm:ss');
+                      chart.data.labels.push(_label);
+                  }
+              }
+          }]
+      });
+
+
+
+      document.getElementById('update1').addEventListener('click', function() {
+          var type = document.getElementById('type1').value;
+          for (const [key, theLineGraph] of Object.entries(chart1.config.data.datasets)) {
+            theLineGraph.type = type;
+            theLineGraph.fill = true;
+            theLineGraph.borderWidth = 2
+          }
+          chart1.update();
+      });
+    // };
+    </script>
+
+
+
+
+
+<br>
+<br>
+<table class="paleBlueRows list" >
+<thead>
+</thead>
+<thead>
+    <tr>
+        <th>Day</th>
+<%
+        i = 1
+%>
+% for key in day_of_week: 
+<%
+        i += 1
+%>
+        <th>${day_of_week[key]['name']}</th>
+% endfor
+        
+    </tr>
+</thead>
+% for a in DOW:
+    <tr>
+        <td>${a}</td>
+% for key in day_of_week: 
+        <td>${day_of_week[key][a]['percentage']}%</td>
+% endfor
+    </tr>
+% endfor
+<%def name="makerow(rows, name)">
+        <td>${rows}</td>
+</%def>
+<tfooter>
+    <tr>
+        <th colspan="${i}">Total ${total_sp}</th>
+    </tr>
+</tfooter>
+</table>
+

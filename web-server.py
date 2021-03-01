@@ -20,6 +20,7 @@ logfile = open(LOG_FILE_WEB,'w', 1)
 sys.stdout = logfile
 sys.stdin = logfile
 sys.stderr = logfile
+DOW = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
 
 # hostName = "localhost"
 hostName = ""
@@ -55,6 +56,54 @@ def get_data_speed_matrix(date_begin, date_end):
                     ttl_records += 1
 
     return (webSpeeDict, ttl_records)
+
+def get_data_day_of_week(date_begin, date_end):
+    ttl_records = 0
+    webSpeeDict = {}
+    dow_stats = { i : {'count':0, 'categories':{}} for i in DOW }
+
+    for i, val in enumerate(WEB_SPEED_DICT):
+        webSpeeDict[val['name']] = {
+            'name': val['name'],
+            'rgb': val['rgb'],
+        }
+        for dow in DOW:
+            webSpeeDict[val['name']][dow] = {
+                'speed': 0,
+                'count': 0,
+                'percentage': 0,
+            }
+
+    datebegin = date_begin.replace("-","")
+    dateend = date_end.replace("-","")
+
+    result = db_select_record(f'''
+        SELECT mean_speed, date from {DB_TABLE} WHERE date BETWEEN '{datebegin}' and '{dateend}'
+        ''')
+
+    if result:
+        for row in result:
+            dow = datetime.datetime.strptime(row['date'], '%Y%m%d').strftime('%A')
+            sp = int(f"{float(row['mean_speed']):.0f}")
+
+            dow_stats[dow]['count'] += 1
+            for i, val in enumerate(WEB_SPEED_DICT):
+                if sp >= val['speed_low'] and sp <= val['speed_high']:
+                    webSpeeDict[val['name']][dow]['speed'] = int((webSpeeDict[val['name']][dow]['speed'] + sp)/2)
+                    webSpeeDict[val['name']][dow]['count'] +=  1
+                    ttl_records += 1
+
+                    if val['name'] not in dow_stats[dow]['categories']:
+                        dow_stats[dow]['categories'][val['name']] = {
+                            'count': 1,
+                            'avespeed': sp,
+                            'rgb': val['rgb'],
+                        }
+                    else:
+                        dow_stats[dow]['categories'][val['name']]['count'] += 1
+                        dow_stats[dow]['categories'][val['name']]['avespeed'] = int((dow_stats[dow]['categories'][val['name']]['avespeed'] + sp)/2)
+             
+    return (webSpeeDict, dow_stats, ttl_records)
 
 def get_data_speed_list(
         date_begin, 
@@ -195,6 +244,7 @@ def render_html_speed_graph(
     
     matrix, ttl_records = get_data_speed_matrix(date_begin, date_end)
 
+
     #################################
     speed_lists = {}
     graph_hrly_datas = {}
@@ -226,6 +276,7 @@ def render_html_speed_graph(
         speed_limit=SPEED_LIMIT,
         );
     graph_hrly = Template(filename='html/_graph_hrly.html')
+    print(speed_lists)
 
     html = graph_hrly.render(
         graph_hrly_datas=graph_hrly_datas,
@@ -319,6 +370,48 @@ def render_html_speed_list(date_today,
         total_pages=int(total_pages),
         LEFT_TO_RIGHT=LEFT_TO_RIGHT,
         RIGHT_TO_LEFT=RIGHT_TO_LEFT,
+        )
+    return html
+
+def render_html_day_of_week(
+        date_today,
+        date_begin,
+        date_end,
+        query_string,
+        ):
+    
+    matrix, dow_stats, ttl_records = get_data_day_of_week(date_begin, date_end)
+
+
+    for  val in matrix:
+        for dow in DOW:
+            matrix[val][dow]['percentage'] = round(matrix[val][dow]['count']/ttl_records*1000, 1)
+            matrix[val][dow]['percentage_dow'] = round(dow_stats[dow]['categories'][val]['count']/dow_stats[dow]['count']*100, 1)
+            print(f"({dow}){val} -- {dow_stats[dow]['categories'][val]['count']}/{dow_stats[dow]['count']} = {matrix[val][dow]['percentage_dow']}")
+
+    # for  dow in DOW:
+    #     for  val in WEB_SPEED_DICT:
+    #         dow_stats[dow]['categories'][val['name']]['percentage'] = round(dow_stats[dow]['categories'][val['name']]['count']/dow_stats[dow]['count']*100, 1)
+
+
+    form=render_html_form(
+        date_today=date_today, 
+        date_begin=date_begin,
+        date_end=date_end,
+        speed_limit=SPEED_LIMIT,
+        );
+    graph_hrly = Template(filename='html/_day-of-week.html')
+
+    html = graph_hrly.render(
+        DOW=DOW,
+        day_of_week=matrix,
+        total_sp=ttl_records,
+        date_today=date_today,
+        date_begin=date_begin,
+        date_end=date_end,
+        speed_limit=SPEED_LIMIT,
+        form=form, 
+        # query_string=query_string,
         )
     return html
 
@@ -564,6 +657,17 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     log=log,
                     )
                 return True
+            elif self.path.startswith('/day-of-week'):
+
+                if 'date_begin' not in query_components:
+                    d = datetime.datetime.today() - datetime.timedelta(days=7)
+                    date_begin = d.strftime('%Y-%m-%d')
+                html_body = render_html_day_of_week(
+                    date_today=date_today,
+                    date_begin=date_begin,
+                    date_end=date_end,
+                    query_string=query_string,
+                    )
             else:
                 # speed list count by hr
                 html_body = render_html_speed_graph(
