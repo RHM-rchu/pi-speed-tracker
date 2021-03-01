@@ -386,13 +386,16 @@ def render_html_day_of_week(
     for  val in matrix:
         for dow in DOW:
             matrix[val][dow]['percentage'] = round(matrix[val][dow]['count']/ttl_records*1000, 1)
-            matrix[val][dow]['percentage_dow'] = round(dow_stats[dow]['categories'][val]['count']/dow_stats[dow]['count']*100, 1)
-            print(f"({dow}){val} -- {dow_stats[dow]['categories'][val]['count']}/{dow_stats[dow]['count']} = {matrix[val][dow]['percentage_dow']}")
+            if val in dow_stats[dow]['categories']:
+                matrix[val][dow]['percentage_dow'] = round(dow_stats[dow]['categories'][val]['count']/dow_stats[dow]['count']*100, 1)
+            else: 
+                matrix[val][dow]['percentage_dow'] = 0
 
     # for  dow in DOW:
     #     for  val in WEB_SPEED_DICT:
     #         dow_stats[dow]['categories'][val['name']]['percentage'] = round(dow_stats[dow]['categories'][val['name']]['count']/dow_stats[dow]['count']*100, 1)
 
+    print(dow_stats)
 
     form=render_html_form(
         date_today=date_today, 
