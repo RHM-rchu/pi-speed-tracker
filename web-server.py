@@ -193,12 +193,15 @@ def is_daemon_active(daemon):
 def daemon_control(cam):
     #--- turn cam on/off
     if cam == "start":
+        if CONSOLE_DEBUGGER >= 3: print("[INFO] starting speed cam")
         os.system("./scripts/service-manager.sh -a speed -x start")
         time.sleep(1)
     elif cam == "stop":
+        if CONSOLE_DEBUGGER >= 3: print("[INFO] stopping speed cam")
         os.system("./scripts/service-manager.sh -a speed -x stop" )
         time.sleep(1)
     if cam == "restart-web":
+        if CONSOLE_DEBUGGER >= 3: print("[INFO] restarting web-server cam")
         os.system("./scripts/service-manager.sh -a web -x restart" )
 
 
@@ -448,14 +451,17 @@ def take_snapshot(mode=True):
     imgPath = f"{PATH_TO_IMAGES}/calibrator.jpg"
     if mode == True: return imgPath, 0
 
-    print("[NOTICE] generating snapshot from webcam")
+    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] generating snapshot from webcam")
 
     from picamera.array import PiRGBArray
     from picamera import PiCamera
     import cv2
 
-    pid=is_daemon_active('speed')
-    if pid > 0: daemon_control('stop')
+    pid = is_daemon_active('speed')
+
+    if pid > 0: 
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Stopping speed tracker")
+        daemon_control('stop')
 
     camera = PiCamera()
     camera.resolution = RESOLUTION
@@ -463,16 +469,21 @@ def take_snapshot(mode=True):
     camera.vflip = False
     camera.hflip = False
     rawCapture = PiRGBArray(camera)
-    time.sleep(0.8)
-    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-        image = frame.array
-        rawCapture.truncate(0)
-        image_path = imgPath
-        cv2.imwrite(image_path, image)
+    # allow the camera to warmup
+    time.sleep(0.1)
+    # grab an image from the camera
+    camera.capture(rawCapture, format="bgr")
+    image = rawCapture.array
 
-        return image_path, pid
-        break
-    return None, pid
+    txt_date = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
+    cv2.putText(image, txt_date,
+        (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
+
+    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Saving Image")
+    cv2.imwrite(imgPath, image)
+    camera.close()
+
+    return imgPath, pid
 
 
 def save_coord_conf(
@@ -483,7 +494,6 @@ def save_coord_conf(
     ):
 
     timestamp = datetime.datetime.timestamp(datetime.datetime.now())
-    print("=========timestamp =", timestamp)
 
     if bx > 0 and by > 0:
         coords_to_file = (f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}')
@@ -527,6 +537,10 @@ def render_html_calibrate(
         # mode = True
 
     image_path, pid=take_snapshot(mode)
+
+    if pid > 0: 
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Starting backup speed tracker")
+        daemon_control('start')
 
     calibrator = Template(filename='html/_calibrate.html')
 
@@ -620,13 +634,12 @@ def stream_log(self, log=None):
                 try:
                     self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
                 except:
-                    # print("[NOTICE] wfile Nothing to write")
+                    # if CONSOLE_DEBUGGER >= 4: print("[NOTICE] wfile Nothing to write")
                     None
-            # self.wfile.write(bytes(realtime_output.strip() + "\n", "utf-8"))
     try:
         process.terminate()
     except:
-        print("[NOTICE] process.terminate() was not needed")
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE] process.terminate() was not needed")
 
 
 
