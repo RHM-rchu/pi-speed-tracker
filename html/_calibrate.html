@@ -1,0 +1,128 @@
+
+<div class="container_nav">
+    <ul>
+        <li><a href="/calibrate">Retake snapshot</a></li>
+    </ul>
+</div>
+
+<h3>Setting the Point Of Interest (POI).</h3>
+<p style="max-width: 1200px">Start from the top left and draw down to the button right. Draw a rectangle on the road area you want to monitor. Ensure you have a little buffer to the left and right so cars don't get cut off as they leave the Field Of View (FOV). This will be the hotzone we monitor to track cars. The save button is not viewable till create the rectangle with your mouse. Each time you move your camera click the [<a href="/calibrate">Retake snapshot</a>] to snap another image.</p>
+<canvas id="canvas" width="600px" height="300px"></canvas>
+
+<form id="reg" method="get" action="">
+    <input type="hidden" name="begin_xy" id="begin_xy" value="0,0"> 
+    <input type="hidden" name="end_xy" id="end_xy" value="0,0"> 
+    <input id="save_calibrate" class="button_text" type="submit" name="save" value="SAVE" />
+</form> 
+<div id="coords"></div>
+% if upper_left_x > 0:
+<div id="coords">
+<dl class="calibrate original">
+    <dt>ORIGINAL</dt>
+    <dd>(x) ${upper_left_x} (y) ${upper_left_y}</dd>
+    <dd>(w) ${width} (h) ${height}</dd>
+</dl>
+</div>
+% endif
+
+
+
+
+<script type="text/javascript">
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var rect = {};
+var drag = false;
+var imageObj = null;
+
+function init() {
+    imageObj = new Image();
+    imageObj.onload = function () { 
+        // ctx.drawImage(imageObj, 0, 0); 
+        img = imageObj
+
+        canvas.width  = img.width;    
+        canvas.height = img.height;  
+
+        ctx.drawImage(img, 0,0);
+        loadRect();
+
+    };
+    imageObj.src = '${image_path}';
+    // imageObj.src = '/media/images/2021/03/01/car_at_20210301_105244.jpg';
+    canvas.addEventListener('mousedown', mouseDown, false);
+    canvas.addEventListener('mouseup', mouseUp, false);
+    canvas.addEventListener('mousemove', mouseMove, false);
+}
+
+function mouseDown(e) {
+    rect.startX = e.pageX - this.offsetLeft;
+    rect.startY = e.pageY - this.offsetTop;
+    drag = true;
+
+    begin_xy = rect.startX + ',' + rect.startY
+    document.getElementById('begin_xy').value = begin_xy;
+    console.log( '------- Reset ------- '  );
+    console.log( 'Start: ' + document.getElementById('begin_xy').value );
+}
+
+function mouseUp(e) { 
+    rect.stopX = e.pageX - this.offsetLeft;
+    rect.stopY = e.pageY - this.offsetTop;
+    drag = false; 
+
+    end_xy = rect.stopX + ',' + rect.stopY
+    if(rect.startX < rect.stopX  && rect.startY < rect.stopY ) {
+        document.getElementById('save_calibrate').style.display = 'block';
+        document.getElementById('end_xy').value = end_xy;
+        console.log( 'End: ' + document.getElementById('end_xy').value );
+
+    } else {
+        document.getElementById('save_calibrate').style.display = 'none';
+    }
+}
+
+function mouseMove(e) {
+    if (drag) {
+        ctx.clearRect(0, 0, 500, 500);
+        ctx.drawImage(imageObj, 0, 0);
+        rect.w = (e.pageX - this.offsetLeft) - rect.startX;
+        rect.h = (e.pageY - this.offsetTop) - rect.startY;
+        ctx.strokeStyle = 'red';
+        ctx.strokeRect(rect.startX, rect.startY, rect.w, rect.h);
+
+
+        document.getElementById('coords').innerHTML =  '<dl class="calibrate new">'
+            + "    <dt>NEW</dt>"
+            + "    <dd>(x)" + ((rect.startX > 0) ? rect.startX : 0 ) 
+            + " (y) " + ((rect.startY > 0) ? rect.startY : 0 ) + "</dd>"
+            + "    <dd>(w) " + ((rect.w > 0) ? rect.w : 0 ) 
+            + " (h) " +  ((rect.h > 0) ? rect.h : 0 )  +"</dd>"
+            + "</dl>";
+
+
+
+        "NEW <ul><li>(x) " 
+            
+            + "</li><li>(w) " 
+            
+            + '</li>';
+    }
+    loadRect();
+}
+function loadRect() {
+    // ctx.drawImage(imageObj, 0, 0);
+    if( ${upper_left_x} > 0 ) {
+        ctx.strokeStyle = 'rgba(255, 255, 0, 1)';
+        ctx.lineWidth = 4
+        ctx.strokeRect(${upper_left_x}, ${upper_left_y}, ${width}, ${height});
+    }
+}
+//
+
+$( document ).ready(function() {
+    init();
+    loadRect();
+});
+</script>
+

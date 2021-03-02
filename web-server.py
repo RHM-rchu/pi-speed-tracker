@@ -14,6 +14,16 @@ from mako.template import Template
 from _configs import *
 from _sqlite3_functions import *
 
+
+if os.path.isfile("_configs_coords.py"):
+    from _configs_coords import *
+else:
+    UPPER_LEFT_X = 0
+    UPPER_LEFT_Y = 0
+    LOWER_RIGHT_X = 0
+    LOWER_RIGHT_Y = 0
+
+
 logfile_base = os.path.dirname(os.path.abspath(LOG_FILE_WEB))
 os.makedirs(logfile_base, exist_ok=True)
 logfile = open(LOG_FILE_WEB,'w', 1)
@@ -21,6 +31,7 @@ sys.stdout = logfile
 sys.stdin = logfile
 sys.stderr = logfile
 DOW = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
+DATE_FORMAT = '%Y-%m-%d'
 
 # hostName = "localhost"
 hostName = ""
@@ -179,6 +190,17 @@ def is_daemon_active(daemon):
     os.remove('tmp')
     return tmppid
 
+def daemon_control(cam):
+    #--- turn cam on/off
+    if cam == "start":
+        os.system("./scripts/service-manager.sh -a speed -x start")
+        time.sleep(1)
+    elif cam == "stop":
+        os.system("./scripts/service-manager.sh -a speed -x stop" )
+        time.sleep(1)
+    if cam == "restart-web":
+        os.system("./scripts/service-manager.sh -a web -x restart" )
+
 
 def convert_list_to_int(thelist):
     numbers  = [ int(x) for x in thelist ]
@@ -207,6 +229,7 @@ def convert_millisec_2_time(epoch, fmt='%A %d %B %Y %I:%M:%S%p'):
     s = float(epoch) / 1000.0
     date_full = datetime.datetime.fromtimestamp(s).strftime(fmt)
     return epoch, date_full
+
 
 #-----------------------------------------
 # HTML
@@ -385,7 +408,10 @@ def render_html_day_of_week(
 
     for  val in matrix:
         for dow in DOW:
-            matrix[val][dow]['percentage'] = round(matrix[val][dow]['count']/ttl_records*1000, 1)
+            if ttl_records == 0:
+                matrix[val][dow]['percentage'] = 0
+            else:
+                matrix[val][dow]['percentage'] = round(matrix[val][dow]['count']/ttl_records*1000, 1)
             if val in dow_stats[dow]['categories']:
                 matrix[val][dow]['percentage_dow'] = round(dow_stats[dow]['categories'][val]['count']/dow_stats[dow]['count']*100, 1)
             else: 
@@ -402,9 +428,9 @@ def render_html_day_of_week(
         date_end=date_end,
         speed_limit=SPEED_LIMIT,
         );
-    graph_hrly = Template(filename='html/_day-of-week.html')
+    graph_dow = Template(filename='html/_day-of-week.html')
 
-    html = graph_hrly.render(
+    html = graph_dow.render(
         DOW=DOW,
         day_of_week=matrix,
         total_sp=ttl_records,
@@ -416,6 +442,110 @@ def render_html_day_of_week(
         # query_string=query_string,
         )
     return html
+
+
+def take_snapshot(mode=True):
+    imgPath = f"{PATH_TO_IMAGES}/calibrator.jpg"
+    if mode == True: return imgPath, 0
+
+    print("[NOTICE] generating snapshot from webcam")
+
+    from picamera.array import PiRGBArray
+    from picamera import PiCamera
+    import cv2
+
+    pid=is_daemon_active('speed')
+    if pid > 0: daemon_control('stop')
+
+    camera = PiCamera()
+    camera.resolution = RESOLUTION
+    camera.framerate = FPS
+    camera.vflip = False
+    camera.hflip = False
+    rawCapture = PiRGBArray(camera)
+    time.sleep(0.8)
+    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+        image = frame.array
+        rawCapture.truncate(0)
+        image_path = imgPath
+        cv2.imwrite(image_path, image)
+
+        return image_path, pid
+        break
+    return None, pid
+
+
+def save_coord_conf(
+        tx=0,
+        ty=0,
+        bx=0,
+        by=0,
+    ):
+
+    timestamp = datetime.datetime.timestamp(datetime.datetime.now())
+    print("=========timestamp =", timestamp)
+
+    if bx > 0 and by > 0:
+        coords_to_file = (f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}')
+    print(coords_to_file)
+    os.system(f'cp _configs_coords.py _configs_coords.py.{timestamp}')
+    #--- write to file
+    f = open('_configs_coords.py', 'r+')
+    f.write(coords_to_file+"\n")
+    f.close
+
+
+def render_html_calibrate(
+        querycomponents,
+        ):
+    upper_left_x = UPPER_LEFT_X
+    upper_left_y = UPPER_LEFT_Y
+    lower_right_x = LOWER_RIGHT_X
+    lower_right_y = LOWER_RIGHT_Y
+    
+    mode = True # mode to take snapshot with cam
+
+    tx = ty = bx = by = 0
+
+    if 'begin_xy' in querycomponents:
+        begin_xy = querycomponents["begin_xy"][0]  
+        tx, ty = [int(s) for s in begin_xy.split(',')]
+    if 'end_xy' in querycomponents:
+        end_xy = querycomponents["end_xy"][0]
+        bx, by = [int(s) for s in end_xy.split(',')]
+
+
+    if int(bx) > 0 and int(by) > 0:
+        upper_left_x=tx
+        upper_left_y=ty
+        lower_right_x=bx
+        lower_right_y=by
+        save_coord_conf(tx, ty, bx, by)
+        mode = True
+    else:
+        # mode = False
+        print('snapppppppppppppppppp')
+        mode = True
+
+    image_path, pid=take_snapshot(mode)
+
+    calibrator = Template(filename='html/_calibrate.html')
+
+
+    html = calibrator.render( 
+        # query_string=query_string,
+        upper_left_x=upper_left_x,
+        upper_left_y=upper_left_y,
+        width=lower_right_x-upper_left_x,
+        height=lower_right_y-upper_left_x,
+        # upper_left_x=UPPER_LEFT_X if 'UPPER_LEFT_X' in vars() else 0,
+        image_path=image_path,
+        )
+
+    if pid > 0: daemon_control('start')
+    return html
+
+
 
 def render_html_log(log=None):
     htmllist = Template(filename='html/log-view.html')
@@ -439,15 +569,16 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
         latest_records[i]['sd'] = round(float(speed['sd']), 0)
         i+=1
 
-    #--- turn cam on/off
-    if cam == "start":
-        os.system("./scripts/service-manager.sh -a speed -x start")
-        time.sleep(1)
-    elif cam == "stop":
-        os.system("./scripts/service-manager.sh -a speed -x stop" )
-        time.sleep(1)
-    if cam == "restart-web":
-        os.system("./scripts/service-manager.sh -a web -x restart" )
+    daemon_control(cam)
+    # #--- turn cam on/off
+    # if cam == "start":
+    #     os.system("./scripts/service-manager.sh -a speed -x start")
+    #     time.sleep(1)
+    # elif cam == "stop":
+    #     os.system("./scripts/service-manager.sh -a speed -x stop" )
+    #     time.sleep(1)
+    # if cam == "restart-web":
+    #     os.system("./scripts/service-manager.sh -a web -x restart" )
 
     sp_tracker_running = is_daemon_active('speed')
 
@@ -500,6 +631,35 @@ def stream_log(self, log=None):
 
 
 
+def date_ensure_gap(datebegin=None, dateend=None, dayz=6):
+    dayz_ahead = datetime.timedelta(dayz)
+    b_date = datetime.datetime.strptime(datebegin, DATE_FORMAT)
+    e_date = datetime.datetime.strptime(dateend, DATE_FORMAT)
+    dayz_ago = datetime.datetime.now().strftime(DATE_FORMAT)
+    t_date = datetime.datetime.strptime(dayz_ago, DATE_FORMAT)
+
+    b_date_dayz = b_date + dayz_ahead
+
+    if b_date_dayz > t_date:
+        b_date = datetime.datetime.today() - dayz_ahead
+        datebegin = b_date.strftime(DATE_FORMAT)
+
+    delta = e_date - b_date
+
+    if delta.days < dayz:
+        start = b_date
+        end = start + dayz_ahead
+        dateend = end.strftime(DATE_FORMAT)
+    return datebegin, dateend
+
+
+
+def date_begin_less_end(datebegin=None, dateend=None):
+    if datebegin > dateend:
+        return dateend, datebegin
+    else:
+        return datebegin, dateend
+
 #-----------------------------------------
 # web header and handles
 #-----------------------------------------
@@ -537,10 +697,6 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
 
             ''' Present frontpage with user authentication. '''
             if self.headers.get('Authorization') == 'Basic ' + str(key):
-                # self.send_response(200)
-                # self.send_header('Content-type', 'application/json')
-                # self.end_headers()
-
                 getvars = self._parse_GET()
 
                 response = {
@@ -630,6 +786,9 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             if 'log' in query_components:
                 log = query_components["log"][0]  
 
+            # ensure begin date is less than end
+            date_begin, date_end = date_begin_less_end(date_begin, date_end)
+
             html_body = ""
             if self.path.startswith('/list'):
                 html_body = render_html_speed_list(
@@ -662,13 +821,19 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             elif self.path.startswith('/day-of-week'):
 
                 if 'date_begin' not in query_components:
-                    d = datetime.datetime.today() - datetime.timedelta(days=7)
-                    date_begin = d.strftime('%Y-%m-%d')
+                    d = datetime.datetime.today() - datetime.timedelta(days=6)
+                    date_begin = d.strftime(DATE_FORMAT)
+                date_begin, date_end = date_ensure_gap(date_begin, date_end)
+
                 html_body = render_html_day_of_week(
                     date_today=date_today,
                     date_begin=date_begin,
                     date_end=date_end,
                     query_string=query_string,
+                    )
+            elif self.path.startswith('/calibrate'):
+                html_body = render_html_calibrate(
+                    querycomponents=query_components,
                     )
             else:
                 # speed list count by hr
