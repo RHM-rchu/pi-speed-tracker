@@ -523,9 +523,8 @@ def render_html_calibrate(
         save_coord_conf(tx, ty, bx, by)
         mode = True
     else:
-        # mode = False
-        print('snapppppppppppppppppp')
-        mode = True
+        mode = False
+        # mode = True
 
     image_path, pid=take_snapshot(mode)
 
