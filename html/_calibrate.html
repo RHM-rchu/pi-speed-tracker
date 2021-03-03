@@ -1,10 +1,15 @@
 
 <div class="container_nav">
     <ul>
-        <li><a href="/calibrate">Retake snapshot</a></li>
+        <li><a href="/calibrate?snapshot=1">Retake snapshot</a></li>
     </ul>
 </div>
-
+% if message != '':
+    <div class="${message_status}">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+        ${message}
+    </div>
+% endif
 <h3>Setting the Point Of Interest (POI).</h3>
 <p style="max-width: 1200px">Start from the top left and draw down to the button right. Draw a rectangle on the road area you want to monitor. Ensure you have a little buffer to the left and right so cars don't get cut off as they leave the Field Of View (FOV). This will be the hotzone we monitor to track cars. The save button is not viewable till create the rectangle with your mouse. Each time you move your camera click the [<a href="/calibrate">Retake snapshot</a>] to snap another image.</p>
 <canvas id="canvas" width="600px" height="300px"></canvas>
@@ -12,6 +17,8 @@
 <form id="reg" method="get" action="">
     <input type="hidden" name="begin_xy" id="begin_xy" value="0,0"> 
     <input type="hidden" name="end_xy" id="end_xy" value="0,0"> 
+    <input type="hidden" name="height" id="height" value="0,0"> 
+    <input type="hidden" name="width" id="width" value="0,0"> 
     <input id="save_calibrate" class="button_text" type="submit" name="save" value="SAVE" />
 </form> 
 <div id="coords"></div>
@@ -19,7 +26,8 @@
 <div id="coords">
 <dl class="calibrate original">
     <dt>ORIGINAL</dt>
-    <dd>(x) ${upper_left_x} (y) ${upper_left_y}</dd>
+    <dd>(x) ${upper_left_x} (y) ${upper_left_y} - upper</dd>
+    <dd>(x) ${lower_right_x} (y) ${lower_right_y} - lower</dd>
     <dd>(w) ${width} (h) ${height}</dd>
 </dl>
 </div>
@@ -67,27 +75,37 @@ function mouseDown(e) {
 }
 
 function mouseUp(e) { 
-    rect.stopX = e.pageX - this.offsetLeft;
-    rect.stopY = e.pageY - this.offsetTop;
+    rect.endX = e.pageX - this.offsetLeft;
+    rect.endY = e.pageY - this.offsetTop;
+    rect.w = rect.endX - rect.startX;
+    rect.h = rect.endY - rect.startY;
     drag = false; 
 
-    end_xy = rect.stopX + ',' + rect.stopY
-    if(rect.startX < rect.stopX  && rect.startY < rect.stopY ) {
+    end_xy = rect.endX + ',' + rect.endY
+    if(rect.startX < rect.endX  && rect.startY < rect.endY ) {
         document.getElementById('save_calibrate').style.display = 'block';
         document.getElementById('end_xy').value = end_xy;
+        document.getElementById('height').value = rect.h;
+        document.getElementById('width').value = rect.w;
         console.log( 'End: ' + document.getElementById('end_xy').value );
 
     } else {
+        if (document.getElementById('height').value > 0 && document.getElementById('width').value > 0) {
         document.getElementById('save_calibrate').style.display = 'none';
+
+        }
     }
 }
 
 function mouseMove(e) {
     if (drag) {
+        rect.endX = (e.pageX - this.offsetLeft)
+        rect.endY = (e.pageY - this.offsetTop)
+
         ctx.clearRect(0, 0, 500, 500);
         ctx.drawImage(imageObj, 0, 0);
-        rect.w = (e.pageX - this.offsetLeft) - rect.startX;
-        rect.h = (e.pageY - this.offsetTop) - rect.startY;
+        rect.w = rect.endX - rect.startX;
+        rect.h = rect.endY - rect.startY;
         ctx.strokeStyle = 'red';
         ctx.strokeRect(rect.startX, rect.startY, rect.w, rect.h);
 
@@ -95,7 +113,11 @@ function mouseMove(e) {
         document.getElementById('coords').innerHTML =  '<dl class="calibrate new">'
             + "    <dt>NEW</dt>"
             + "    <dd>(x)" + ((rect.startX > 0) ? rect.startX : 0 ) 
-            + " (y) " + ((rect.startY > 0) ? rect.startY : 0 ) + "</dd>"
+            + " (y) " + ((rect.startY > 0) ? rect.startY : 0 ) 
+            + " - upper </dd>"
+            + "    <dd>(x)" + ((rect.endX > 0) ? rect.endX : 0 ) 
+            + " (y) " + ((rect.endY > 0) ? rect.endY : 0 ) 
+            + " - lower </dd>"
             + "    <dd>(w) " + ((rect.w > 0) ? rect.w : 0 ) 
             + " (h) " +  ((rect.h > 0) ? rect.h : 0 )  +"</dd>"
             + "</dl>";
@@ -111,7 +133,6 @@ function mouseMove(e) {
     loadRect();
 }
 function loadRect() {
-    // ctx.drawImage(imageObj, 0, 0);
     if( ${upper_left_x} > 0 ) {
         ctx.strokeStyle = 'rgba(255, 255, 0, 1)';
         ctx.lineWidth = 4

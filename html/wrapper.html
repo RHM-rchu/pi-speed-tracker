@@ -12,6 +12,17 @@
     <script src="/html/assets/Chart.js"></script>
     <script src="/html/assets/utils.js"></script>
 </head>
+<%
+nav_links = {
+    '/':'Overview',
+    '/list/':'By Time',
+    '/day-of-week':'Day of Week',
+    '/status':'CAM Status',
+    '/calibrate':'Calibrate CAM',
+    '/config_editor':'Edit Configs',
+    '/log-view':'Real-Time Logs',
+}
+%>
 <nav role="navigation">
     <div id="menuToggle">
         <!--
@@ -33,30 +44,45 @@
     but hey, it's pure CSS magic.
     -->
         <ul id="menu">
-            <a href="/">
-                <li>Overview</li>
+% for link in nav_links:
+            <a href="${link}">
+                <li>${nav_links[link]}</li>
             </a>
-            <a href="/list/">
-                <li>By Time</li>
-            </a>
-            <a href="/day-of-week/">
-                <li>Day of Week</li>
-            </a>
-            <a href="/status">
-                <li>CAM Status</li>
-            </a>
-            <a href="/calibrate">
-                <li>Calibrate CAM</li>
-            </a>
-            <a href="/log-view">
-                <li>Real-Time Logs</li>
-            </a>
+% endfor
         </ul>
     </div>
 </nav>
+
 <div class="body">
 ${body}
 </div>
+
+
+<div class="footer-basic">
+    <footer>
+        <ul class="list-inline">
+% for link in nav_links:
+            <li class="list-inline-item"><a href="${link}">${nav_links[link]}</a></li>
+% endfor
+        </ul>
+% if metarefresh == True:
+        <p class="couter">Auto-Refresh in <span id="CDTimer">???</span> secs.</p>
+<script language="JavaScript" type="text/javascript">
+/*<![CDATA[*/
+var TimerVal = ${page_refresh};
+var TimerSPan = document.getElementById("CDTimer");
+function CountDown(){
+   setTimeout( "CountDown()", 1000 );
+   TimerSPan.innerHTML=TimerVal;
+   TimerVal=TimerVal-1;
+   if (TimerVal<0) { TimerVal=0 } //improvement by vivalibre, tq 
+} CountDown() 
+/*]]>*/ 
+</script>
+% endif
+    </footer>
+</div>
+
 </body>
 
 </html>

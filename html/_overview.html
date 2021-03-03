@@ -3,6 +3,9 @@
 
 ${form}
 
+
+
+
   <div class="graph_container">
     <canvas id="speed"></canvas>
   </div>
@@ -74,15 +77,15 @@ var chart1 = new Chart(ctx, {
     },
 });
 
-  document.getElementById('update1').addEventListener('click', function() {
-      var type = document.getElementById('type1').value;
-      for (const [key, theLineGraph] of Object.entries(chart1.config.data.datasets)) {
-        theLineGraph.type = type;
-        theLineGraph.fill = true;
-        theLineGraph.borderWidth = 2
-      }
-      chart1.update();
-  });
+document.getElementById('update1').addEventListener('click', function() {
+    var type = document.getElementById('type1').value;
+    for (const [key, theLineGraph] of Object.entries(chart1.config.data.datasets)) {
+      theLineGraph.type = type;
+      theLineGraph.fill = true;
+      theLineGraph.borderWidth = 2
+    }
+    chart1.update();
+});
 </script>
 
 
@@ -158,6 +161,65 @@ var chart1 = new Chart(ctx, {
 
 <br>
 <br>
+
+    <div id="canvas-holder" style="width:60%;" class="center">
+        <canvas id="chart-area"></canvas>
+    </div>
+    <script>
+        var config = {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data: [
+% for a in percent_sp_list:
+                      ${percent_sp_list[a]['count']},
+% endfor
+                    ],
+                    borderColor: [
+% for a in percent_sp_list:
+                        'rgba(${percent_sp_list[a]['rgb']}, 1)',
+% endfor
+                    ],
+                    backgroundColor: [
+% for a in percent_sp_list:
+                        'rgba(${percent_sp_list[a]['rgb']}, 0.2)',
+% endfor
+                    ],
+                }],
+                labels: [
+% for a in percent_sp_list:
+                  "${a}",
+% endfor
+                ]
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Categories'
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+                circumference: Math.PI,
+                rotation: -Math.PI,
+            }
+        };
+
+        // window.onload = function() {
+            var ctx = document.getElementById('chart-area').getContext('2d');
+            window.myDoughnut = new Chart(ctx, config);
+        // };
+
+    </script>
+
+
+<br>
+
 <table class="paleBlueRows list" >
 <thead>
     <tr>
@@ -175,7 +237,7 @@ var chart1 = new Chart(ctx, {
   ${makerow(percent_sp_list[a], a)}
 % endfor
 <%def name="makerow(rows, name)">
-    <tr>
+    <tr class="horizontal">
         <td>${name}</td>
         <td>${rows['count']}</td>
         <td>${rows['percent']}%</td>
@@ -187,6 +249,7 @@ var chart1 = new Chart(ctx, {
     </tr>
 </tfooter>
 </table>
+
 
 
 

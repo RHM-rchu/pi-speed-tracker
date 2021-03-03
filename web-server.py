@@ -15,8 +15,23 @@ from _configs import *
 from _sqlite3_functions import *
 
 
-if os.path.isfile("_configs_coords.py"):
-    from _configs_coords import *
+DOW = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
+DATE_FORMAT = '%Y-%m-%d'
+CONFIG_FILE='_configs.py'
+COORD_FILE='_coords.py'
+
+# generate a config file if not exists
+if os.path.isfile(CONFIG_FILE) == False:
+    os.system(f'cp _configs_sample.py {CONFIG_FILE}')
+
+
+#~~~~~~~~~~~~~~~~ temp rename old coord file to new
+if os.path.isfile('_configs_coords.py') == True:
+    os.rename('_configs_coords.py', COORD_FILE)
+#~~~~~~~~~~~~~~~~ 
+
+if os.path.isfile("_coords.py"):
+    from _coords import *
 else:
     UPPER_LEFT_X = 0
     UPPER_LEFT_Y = 0
@@ -30,8 +45,6 @@ logfile = open(LOG_FILE_WEB,'w', 1)
 sys.stdout = logfile
 sys.stdin = logfile
 sys.stderr = logfile
-DOW = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
-DATE_FORMAT = '%Y-%m-%d'
 
 # hostName = "localhost"
 hostName = ""
@@ -77,6 +90,7 @@ def get_data_day_of_week(date_begin, date_end):
         webSpeeDict[val['name']] = {
             'name': val['name'],
             'rgb': val['rgb'],
+            'count':0,
         }
         for dow in DOW:
             webSpeeDict[val['name']][dow] = {
@@ -102,6 +116,7 @@ def get_data_day_of_week(date_begin, date_end):
                 if sp >= val['speed_low'] and sp <= val['speed_high']:
                     webSpeeDict[val['name']][dow]['speed'] = int((webSpeeDict[val['name']][dow]['speed'] + sp)/2)
                     webSpeeDict[val['name']][dow]['count'] +=  1
+                    webSpeeDict[val['name']]['count'] += 1
                     ttl_records += 1
 
                     if val['name'] not in dow_stats[dow]['categories']:
@@ -234,6 +249,91 @@ def convert_millisec_2_time(epoch, fmt='%A %d %B %Y %I:%M:%S%p'):
     return epoch, date_full
 
 
+def take_snapshot(snapshot=False):
+    imgPath = f"{PATH_TO_IMAGES}/calibrator.jpg"
+
+    if os.path.isfile(imgPath) == True and snapshot == False: 
+        # return f"{PATH_TO_IMAGES}/calibrate.jpg", 0
+        return imgPath, 0
+
+
+    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] generating snapshot from webcam")
+
+    from picamera.array import PiRGBArray
+    from picamera import PiCamera
+    import cv2
+
+    pid = is_daemon_active('speed')
+
+    if pid > 0: 
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Stopping speed tracker")
+        daemon_control('stop')
+
+    camera = PiCamera()
+    camera.resolution = RESOLUTION
+    camera.framerate = FPS
+    camera.vflip = False
+    camera.hflip = False
+    rawCapture = PiRGBArray(camera, size=camera.resolution)
+    # allow the camera to warmup
+    time.sleep(0.8)
+    # grab an image from the camera
+    camera.capture(rawCapture, format="bgr", use_video_port=True)
+
+    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Capture Image")
+    image = rawCapture.array
+
+    txt_date = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
+    cv2.putText(image, txt_date,
+        (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
+
+    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Saving Image")
+    cv2.imwrite(imgPath, image)
+    camera.close()
+
+    return imgPath, pid
+
+
+def save_coord_conf(
+        tx=0,
+        ty=0,
+        bx=0,
+        by=0,
+    ):
+    backupDir = '.bak'
+    # timestamp = datetime.datetime.timestamp(datetime.datetime.now())
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    if bx > 0 and by > 0:
+        coords_to_data = (f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}')
+        print(f"coords_to_data")
+    else:
+        return None
+
+    os.makedirs(backupDir, exist_ok=True)
+    os.system(f'cp {COORD_FILE} {backupDir}/_coords.py.{timestamp}')
+
+    #--- write to file
+    if CONSOLE_DEBUGGER >= 3: print("[INFO] Updating Coordinates")
+    f = open(COORD_FILE, 'w+')
+    f.write(coords_to_data+"\n")
+    f.close
+    # time.sleep(1)
+    # daemon_control('restart-web')
+
+
+def save_config(config=None):
+    if config == None:
+        return None
+
+    #--- write to file
+    if CONSOLE_DEBUGGER >= 3: print("[INFO] Updating Configs")
+    f = open(CONFIG_FILE, 'w+')
+    f.write(config+"\n")
+    f.close
+    return True
+
+
 #-----------------------------------------
 # HTML
 #-----------------------------------------
@@ -301,7 +401,7 @@ def render_html_speed_graph(
         date_end=date_end,
         speed_limit=SPEED_LIMIT,
         );
-    graph_hrly = Template(filename='html/_graph_hrly.html')
+    graph_hrly = Template(filename='html/_overview.html')
     print(speed_lists)
 
     html = graph_hrly.render(
@@ -342,8 +442,7 @@ def render_html_speed_list(date_today,
     hours24 = [0 for x in range(1, 24)]
     speed_dict = []
     epoch = 0
-    # dedupe = {}
-    # epoch = 0
+
     for speed in speed_lists:
         epoch, date_full = convert_millisec_2_time(speed['id'])
         speed['date_full'] = date_full
@@ -408,13 +507,14 @@ def render_html_day_of_week(
     
     matrix, dow_stats, ttl_records = get_data_day_of_week(date_begin, date_end)
 
-
     for  val in matrix:
         for dow in DOW:
+
             if ttl_records == 0:
                 matrix[val][dow]['percentage'] = 0
             else:
-                matrix[val][dow]['percentage'] = round(matrix[val][dow]['count']/ttl_records*1000, 1)
+                matrix[val][dow]['percentage'] = round(matrix[val][dow]['count']/matrix[val]['count']*100, 2)
+
             if val in dow_stats[dow]['categories']:
                 matrix[val][dow]['percentage_dow'] = round(dow_stats[dow]['categories'][val]['count']/dow_stats[dow]['count']*100, 1)
             else: 
@@ -436,6 +536,7 @@ def render_html_day_of_week(
     html = graph_dow.render(
         DOW=DOW,
         day_of_week=matrix,
+        dow_stats=dow_stats,
         total_sp=ttl_records,
         date_today=date_today,
         date_begin=date_begin,
@@ -447,63 +548,6 @@ def render_html_day_of_week(
     return html
 
 
-def take_snapshot(mode=True):
-    imgPath = f"{PATH_TO_IMAGES}/calibrator.jpg"
-    if mode == True: return imgPath, 0
-
-    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] generating snapshot from webcam")
-
-    from picamera.array import PiRGBArray
-    from picamera import PiCamera
-    import cv2
-
-    pid = is_daemon_active('speed')
-
-    if pid > 0: 
-        if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Stopping speed tracker")
-        daemon_control('stop')
-
-    camera = PiCamera()
-    camera.resolution = RESOLUTION
-    camera.framerate = FPS
-    camera.vflip = False
-    camera.hflip = False
-    rawCapture = PiRGBArray(camera)
-    # allow the camera to warmup
-    time.sleep(0.1)
-    # grab an image from the camera
-    camera.capture(rawCapture, format="bgr")
-    image = rawCapture.array
-
-    txt_date = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
-    cv2.putText(image, txt_date,
-        (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
-
-    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Saving Image")
-    cv2.imwrite(imgPath, image)
-    camera.close()
-
-    return imgPath, pid
-
-
-def save_coord_conf(
-        tx=0,
-        ty=0,
-        bx=0,
-        by=0,
-    ):
-
-    timestamp = datetime.datetime.timestamp(datetime.datetime.now())
-
-    if bx > 0 and by > 0:
-        coords_to_file = (f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}')
-    print(coords_to_file)
-    os.system(f'cp _configs_coords.py _configs_coords.py.{timestamp}')
-    #--- write to file
-    f = open('_configs_coords.py', 'r+')
-    f.write(coords_to_file+"\n")
-    f.close
-
 
 def render_html_calibrate(
         querycomponents,
@@ -512,8 +556,8 @@ def render_html_calibrate(
     upper_left_y = UPPER_LEFT_Y
     lower_right_x = LOWER_RIGHT_X
     lower_right_y = LOWER_RIGHT_Y
-    
-    mode = True # mode to take snapshot with cam
+    message = ''
+    snapshot = False # mode to take snapshot with cam
 
     tx = ty = bx = by = 0
 
@@ -523,6 +567,8 @@ def render_html_calibrate(
     if 'end_xy' in querycomponents:
         end_xy = querycomponents["end_xy"][0]
         bx, by = [int(s) for s in end_xy.split(',')]
+    if 'snapshot' in querycomponents:
+        snapshot = True
 
 
     if int(bx) > 0 and int(by) > 0:
@@ -531,12 +577,11 @@ def render_html_calibrate(
         lower_right_x=bx
         lower_right_y=by
         save_coord_conf(tx, ty, bx, by)
-        mode = True
-    else:
-        mode = False
-        # mode = True
+        snapshot = False
+        message = f"Coordinates saved! [BEGIN] x:{tx} y:{ty} and [END] x:{bx} y:{by}"
 
-    image_path, pid=take_snapshot(mode)
+
+    image_path, pid=take_snapshot(snapshot)
 
     if pid > 0: 
         if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Starting backup speed tracker")
@@ -549,10 +594,14 @@ def render_html_calibrate(
         # query_string=query_string,
         upper_left_x=upper_left_x,
         upper_left_y=upper_left_y,
+        lower_right_x=lower_right_x,
+        lower_right_y=lower_right_y,
         width=lower_right_x-upper_left_x,
-        height=lower_right_y-upper_left_x,
+        height=lower_right_y-upper_left_y,
         # upper_left_x=UPPER_LEFT_X if 'UPPER_LEFT_X' in vars() else 0,
         image_path=image_path,
+        message=message,
+        message_status='message',
         )
 
     if pid > 0: daemon_control('start')
@@ -583,15 +632,6 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
         i+=1
 
     daemon_control(cam)
-    # #--- turn cam on/off
-    # if cam == "start":
-    #     os.system("./scripts/service-manager.sh -a speed -x start")
-    #     time.sleep(1)
-    # elif cam == "stop":
-    #     os.system("./scripts/service-manager.sh -a speed -x stop" )
-    #     time.sleep(1)
-    # if cam == "restart-web":
-    #     os.system("./scripts/service-manager.sh -a web -x restart" )
 
     sp_tracker_running = is_daemon_active('speed')
 
@@ -603,14 +643,37 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
         )
     return html
 
+
+def render_html_config_editor(querycomponents=None):
+    configContent = None
+    message = ''
+    if 'configs' in querycomponents:
+        configContent = querycomponents["configs"][0] 
+        saveStatus = save_config(config=configContent)
+        if saveStatus == True:
+            message = "Configs Saved!"
+
+    if configContent is None:
+        with open(CONFIG_FILE,'r') as file:
+            configContent = file.read()
+
+    htmllist = Template(filename='html/_config_editor.html')
+    html = htmllist.render(
+        message=message,
+        configContent=configContent,
+        message_status='message',
+        )
+    return html
+
+
+
+
 def stream_log(self, log=None):
-    # self.send_response(200)
-    # self.send_header('Content-type','text/html')
-    # self.end_headers()
     if log == 'web':
         cmd = f"tail -f {LOG_FILE_WEB}"
     elif log == 'top':
-        cmd = "top -b -1 -n 1 -u pi"
+        cmd = "top -b -1 -n 1"
+        # cmd = "top -b -1 -n 1 -u pi"
     else:
         cmd = f"tail -f {LOG_FILE}"
 
@@ -700,6 +763,54 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             'WWW-Authenticate', 'Basic realm="Auth Realm"')
         self.send_header('Content-type', 'application/json')
         self.end_headers()
+
+    def do_POST(self):
+        #------------ userauth
+        if WEB_REQURE_AUTH == True:
+            key = self.server.get_auth_key()
+
+            ''' Present frontpage with user authentication. '''
+            if self.headers.get('Authorization') == 'Basic ' + str(key):
+                getvars = self._parse_GET()
+
+                response = {
+                    'path': self.path,
+                    'get_vars': str(getvars)
+                }
+
+            else:
+                self.do_AUTHHEAD()
+
+                response = {
+                    'success': False,
+                    'error': 'Invalid credentials'
+                }
+
+                self.wfile.write(bytes(json.dumps(response), 'utf-8'))
+                return None
+
+        # self.send_response(301)
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+        length = int(self.headers['Content-Length'])
+        fields = parse_qs(self.rfile.read(length).decode('utf-8'))
+        html_body = None
+        metarefresh = False
+        
+        if self.path.startswith('/config_editor'):
+            html_body = render_html_config_editor(
+                querycomponents=fields,
+                )
+
+        htmlwrapper = Template(filename='html/wrapper.html')
+        html = htmlwrapper.render(
+            metarefresh=metarefresh,
+            body=html_body,
+            )
+
+        self.wfile.write(bytes(html, "utf-8"))
 
     def do_GET(self):
 
@@ -823,7 +934,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 html_body = render_html_log(
                     log=log,
                     )
-                metarefresh = False
+                metarefresh = True
             elif self.path.startswith('/log-stream'):
                 stream_log(
                     self,
@@ -843,10 +954,17 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     date_end=date_end,
                     query_string=query_string,
                     )
+                metarefresh = False
             elif self.path.startswith('/calibrate'):
                 html_body = render_html_calibrate(
                     querycomponents=query_components,
                     )
+                metarefresh = False
+            elif self.path.startswith('/config_editor'):
+                html_body = render_html_config_editor(
+                    querycomponents=query_components,
+                    )
+                metarefresh = False
             else:
                 # speed list count by hr
                 html_body = render_html_speed_graph(
@@ -860,7 +978,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             html = htmlwrapper.render(
                 metarefresh=metarefresh,
                 body=html_body,
-                page_refresh=WEB_AUTO_REFRESH
+                page_refresh=WEB_AUTO_REFRESH,
                 )
 
             self.wfile.write(bytes(html, "utf-8"))

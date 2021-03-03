@@ -25,8 +25,12 @@ sys.stdout = logfile
 sys.stdin = logfile
 sys.stderr = logfile
 
-if os.path.isfile("_configs_coords.py"):
-    from _configs_coords import *
+##### temp delete soon
+if os.path.isfile('_configs_coords.py') == True:
+    os.rename('_configs_coords.py', '_coords.py')
+####
+if os.path.isfile("_coords.py"):
+    from _coords import *
 else:
     # doesn't exist
     print('[ERROR] couldn\'t open configs_coords.py, To create the region to monitor run: ptython calibator.py')

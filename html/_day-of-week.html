@@ -196,6 +196,88 @@ ${form}
 
 <br>
 <br>
+
+
+
+    <div id="canvas-holder" style="width:60%;" class="center">
+        <canvas id="chart-area"></canvas>
+    </div>
+    <script>
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF'.split('');
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        function random_rgba(alpha) {
+            var o = Math.round, r = Math.random, s = 255;
+            if(alpha>0){
+              return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + alpha + ')';
+            } else {
+              return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
+            }
+            
+        }
+        borderColor = getRandomColor()
+        var config = {
+            type: 'doughnut',
+                    fillOpacity: .2,
+            data: {
+                datasets: [{
+                    data: [
+% for a in dow_stats:
+                      ${dow_stats[a]['count']},
+% endfor
+                    ],
+                    borderColor: [
+% for a in dow_stats:
+                      borderColor,
+% endfor
+                    ],
+                    backgroundColor: [
+% for a in dow_stats:
+                      random_rgba(.2),
+% endfor
+                    ],
+                }],
+                labels: [
+% for a in dow_stats:
+                  "${a}",
+% endfor
+                ]
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Total Per Day of Week'
+                },
+                animation: {
+                    // animateScale: true,
+                    animateRotate: true
+                },
+                circumference: Math.PI,
+                rotation: -Math.PI,
+            }
+        };
+
+            var ctx = document.getElementById('chart-area').getContext('2d');
+            window.myDoughnut = new Chart(ctx, config);
+
+    </script>
+
+
+<br>
+
+
+
+
+
 <table class="paleBlueRows list" >
 <thead>
 </thead>
@@ -215,7 +297,7 @@ ${form}
     </tr>
 </thead>
 % for a in DOW:
-    <tr>
+    <tr class="vertical">
         <td>${a}</td>
 % for key in day_of_week: 
         <td>${day_of_week[key][a]['percentage']}%</td>

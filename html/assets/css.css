@@ -7,9 +7,14 @@ body {
     /* make it look decent enough */
 /*    background: #232323;
     color: #cdcdcd;*/
+
+    max-width: 1200px;
     font-family: "Avenir Next", "Avenir", sans-serif;
 }
 
+
+
+/* Menue ---------------------------*/
 #menuToggle {
     display: block;
     position: fixed;
@@ -145,6 +150,7 @@ body {
 
 div.center {
   text-align: center;
+  margin:0 auto;
 }
 
 
@@ -164,6 +170,84 @@ form li:after {
     visibility: hidden;
 }
 
+input.button_text {
+    box-shadow:inset 0px -3px 7px 0px #29bbff;
+    background:linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
+    background-color:#2dabf9;
+    border-radius:3px;
+    border:1px solid #0b0e07;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:Arial;
+    font-size:15px;
+    padding:9px 23px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #263666;
+}
+input.button_text:hover {
+    background:linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);
+    background-color:#0688fa;
+}
+input.button_text:active {
+    position:relative;
+    top:1px;
+}
+textarea.configs{
+    width: 900px;
+    height: 450px;
+/*    display: block;
+    margin-left: auto;
+    margin-right: auto;*/
+    background-color : #D1D1D1;
+    border:1px solid #CECECE;
+    box-shadow: 0 0 10px #719ECE;
+}
+textarea.configs:focus {
+    outline: none !important;
+    border:1px solid red;
+    box-shadow: 0 0 10px #719ECE;
+}
+
+/* config_editor ---------------------------*/
+#config_editor {
+    width:900px; 
+    margin: 0 auto;
+}
+
+.alert {
+  padding: 20px;
+  background-color: #f44336; /* Red */
+  color: white;
+  margin-bottom: 15px;
+}
+.warn {
+  padding: 20px;
+  background-color: #E89601; 
+  color: white;
+  margin-bottom: 15px;
+}
+.message {
+  padding: 20px;
+  background-color: #1E981D;
+  color: white;
+  margin-bottom: 15px;
+}
+.closebtn {
+  margin-left: 15px;
+  color: white;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* When moving the mouse over the close button */
+.closebtn:hover {
+  color: black;
+}
 
 /* Graph ---------------------------*/
 .graph_container {
@@ -182,7 +266,8 @@ form li:after {
 
 
 table.list {
-  margin-left: 60px;
+    margin-left: 60px;
+    margin: 0 auto;
 }
 
 table tr:not(.fble_htr) {
@@ -202,6 +287,7 @@ table.paleBlueRows {
     height: 200px;
     text-align: left;
     border-collapse: collapse;
+    min-width: 900px;
     /*background: #fff;*/
 }
 
@@ -220,8 +306,19 @@ table.paleBlueRows tbody td {
     font-size: 13px;
 }
 
-table.paleBlueRows tr:nth-child(even) {
+table.paleBlueRows tr {
+    border: 3px solid #FFFFFF;
+}
+table.paleBlueRows tr.horizontal:nth-child(even) {
     background: #D7EBFB;
+}
+
+/*  Define the background color for all the ODD table columns  */
+table.paleBlueRows tr.vertical td:nth-child(even){ 
+    background: #D7EBFB;
+}
+table.paleBlueRows tr:hover {
+    border: 2px solid #36A2EB;
 }
 
 table.paleBlueRows thead {
@@ -424,29 +521,6 @@ div.prev_img:hover {
 .original {
     background-color: yellow;
 }
-input.button_text {
-    box-shadow:inset 0px -3px 7px 0px #29bbff;
-    background:linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
-    background-color:#2dabf9;
-    border-radius:3px;
-    border:1px solid #0b0e07;
-    display:inline-block;
-    cursor:pointer;
-    color:#ffffff;
-    font-family:Arial;
-    font-size:15px;
-    padding:9px 23px;
-    text-decoration:none;
-    text-shadow:0px 1px 0px #263666;
-}
-input.button_text:hover {
-    background:linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);
-    background-color:#0688fa;
-}
-input.button_text:active {
-    position:relative;
-    top:1px;
-}
 
 /* Status Page container ---------------------------*/
 
@@ -539,4 +613,43 @@ a:link, a:visited, a:hover, a:focus, a:active {
     /* creates padding around scroll thumb */
 }
 
+
+/* Footer ---------------------------*/
+.footer-basic {
+    padding:40px 0;
+    background-color:#ffffff;
+    color:#4b4c4d;
+}
+
+.footer-basic ul {
+    padding:0;
+    list-style:none;
+    text-align:center;
+    font-size:18px;
+    line-height:1.6;
+    margin-bottom:0;
+}
+
+.footer-basic li {
+    padding:0 10px;
+    display: inline;
+}
+
+.footer-basic ul a {
+    color:inherit;
+    text-decoration:none;
+    opacity:0.8;
+}
+
+.footer-basic ul a:hover {
+    opacity:1;
+}
+
+.footer-basic .couter {
+    margin-top:15px;
+    text-align:center;
+    font-size:13px;
+    color:#aaa;
+    margin-bottom:0;
+}
 

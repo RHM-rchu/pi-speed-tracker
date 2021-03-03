@@ -2,76 +2,7 @@
 
 
 
-
-<%
-l2r = 0
-r2l = 0
-%>
-% for speed in speed_dict: 
-  % if speed['direction'] == LEFT_TO_RIGHT:
-    <%
-        l2r+=1
-    %>
-  % else:
-    <%
-        r2l+=1
-    %>
-  % endif
-% endfor 
-    <div id="canvas-holder" style="width:30%">
-        <canvas id="chart-area"></canvas>
-    </div>
-    <script>
-        var config = {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [
-                        ${r2l},
-                        ${l2r},
-                    ],
-                    borderColor: [
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(75, 192, 192, 1)',
-                    ],
-                    backgroundColor: [
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                    ],
-                    label: 'Dataset 1'
-                }],
-                labels: [
-                    '${RIGHT_TO_LEFT}',
-                    '${LEFT_TO_RIGHT}',
-                ]
-            },
-            options: {
-                responsive: true,
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Direction'
-                },
-                animation: {
-                    animateScale: true,
-                    animateRotate: true
-                },
-                circumference: Math.PI,
-                rotation: -Math.PI,
-            }
-        };
-
-        window.onload = function() {
-            var ctx = document.getElementById('chart-area').getContext('2d');
-            window.myDoughnut = new Chart(ctx, config);
-        };
-
-    </script>
-
-
-<br><br>
+${form}
 
 
 
@@ -91,7 +22,6 @@ Chart Type:
 <br>
 
 
-${form}
 <script>
 var ctx = document.getElementById('chart1').getContext('2d');
 // ctx.canvas.width = 1000;
@@ -249,6 +179,76 @@ document.getElementById('update').addEventListener('click', function() {
 
 
 
+<%
+l2r = 0
+r2l = 0
+%>
+% for speed in speed_dict: 
+  % if speed['direction'] == LEFT_TO_RIGHT:
+    <%
+        l2r+=1
+    %>
+  % else:
+    <%
+        r2l+=1
+    %>
+  % endif
+% endfor 
+    <div id="canvas-holder" style="width:40%" class="center">
+        <canvas id="chart-area"></canvas>
+    </div>
+    <script>
+        var config = {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [
+                        ${r2l},
+                        ${l2r},
+                    ],
+                    borderColor: [
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(75, 192, 192, 1)',
+                    ],
+                    backgroundColor: [
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                    ],
+                }],
+                labels: [
+                    '${RIGHT_TO_LEFT}',
+                    '${LEFT_TO_RIGHT}',
+                ]
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    // position: 'bottom',
+                    display: false,
+                },
+                title: {
+                    display: true,
+                    text: 'Direction'
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+                circumference: Math.PI,
+                rotation: -Math.PI,
+            }
+        };
+
+        // window.onload = function() {
+            var ctx = document.getElementById('chart-area').getContext('2d');
+            window.myDoughnut = new Chart(ctx, config);
+        // };
+
+    </script>
+
+
+<br>
+
 
 
 <div id="modal">
@@ -293,7 +293,7 @@ document.getElementById('update').addEventListener('click', function() {
         </tr>
     </thead>
     % for row in speed_lists:
-    <tr>
+    <tr class="horizontal">
         <td class="firstcol"><a data-id="/${row['image_path']}" class="showModal" id="${row['id']}" alt="${row['mean_speed']}mph - ${row['direction']} - ${row['date_full']}"><img src="/html/assets/img.png"></a></td>
         <td>${row['date_full']}</td>
         <td>${row['mean_speed']}</td>
