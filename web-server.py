@@ -22,7 +22,7 @@ COORD_FILE='_coords.py'
 
 # generate a config file if not exists
 if os.path.isfile(CONFIG_FILE) == False:
-    os.system(f'cp _configs_sample.py {CONFIG_FILE}')
+    os.system(f'cp sample_configs.py {CONFIG_FILE}')
 
 
 #~~~~~~~~~~~~~~~~ temp rename old coord file to new
