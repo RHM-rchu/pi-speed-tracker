@@ -1,5 +1,4 @@
 
-/* Style the navigation menu */
 body {
     margin-left: 40px;
     padding: 15px;
@@ -120,7 +119,7 @@ body {
  */
 #menu {
     position: absolute;
-    width: 120px;
+    width: 200px;
     margin: -100px 0 0 -50px;
     padding: 50px;
     padding-top: 125px;
@@ -147,6 +146,8 @@ body {
 #menuToggle input:checked~ul {
     transform: none;
 }
+
+
 
 div.center {
   text-align: center;
@@ -262,9 +263,10 @@ textarea.configs:focus {
     font-size: .9em;
 }
 
+
+
+
 /* blueTable---------------------------*/
-
-
 table.list {
     margin-left: 60px;
     margin: 0 auto;
@@ -559,7 +561,7 @@ div.prev_img:hover {
 }
 
 
-/* Log Viewer ---------------------------*/
+/* Sub Nav ---------------------------*/
 div.container_nav ul {
     list-style-type: none;
     display: flex;
@@ -582,6 +584,8 @@ a:link, a:visited, a:hover, a:focus, a:active {
     color: #666666;
 }
 
+
+/* Log Viewer ---------------------------*/
 .container_log .preformatted {
     /*    font-family: monospace;
     white-space: pre;*/
