@@ -19,6 +19,8 @@ DOW = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
 DATE_FORMAT = '%Y-%m-%d'
 CONFIG_FILE='_configs.py'
 COORD_FILE='_coords.py'
+THEUSER = os.getlogin()
+CRONFILE = 'tmp_crontab.txt'
 
 # generate a config file if not exists
 if os.path.isfile(CONFIG_FILE) == False:
@@ -139,11 +141,13 @@ def get_data_speed_list(
         direction=None,
         speed_range=None,
         speed_limit=SPEED_LIMIT,
+        sort=None,
         ):
     # global DB_TABLE
     datebegin = date_begin.replace("-","")
     dateend = date_end.replace("-","")
     page = int(page)
+    order_by = ''
     maxPerPage = int(maxPerPage)
     speed_limit = int(speed_limit)
 
@@ -166,17 +170,20 @@ def get_data_speed_list(
                 sql_speed_range = f"and (mean_speed >= {val['speed_low']} and mean_speed <= {val['speed_high']})"
                 # sql_speed_range = "and mean_speed BETWEEN %.2f and %.2f" % ( (float(val['speed_low']) - .5), (float(val['speed_high']) + .5) )
 
+    if sort is not None:
+        order_by = f" ORDER BY id {sort}"
+
     result = db_select_record(f'''SELECT count(date) as total 
         from {DB_TABLE}
         WHERE date BETWEEN '{datebegin}' and '{dateend}'  {sql_direction}  {sql_speed_range};''')
     total = int(result[0]['total'])
     total_page = int(total/maxPerPage)  + (total % maxPerPage > 0)
 
-
     result = db_select_record(f'''SELECT id, date, hour, minute, round(mean_speed, 2) as mean_speed, 
         direction, image_path, round(sd, 0) as sd, counter
         from {DB_TABLE} 
         WHERE date BETWEEN '{datebegin}' and '{dateend}' {sql_direction} {sql_speed_range}
+        {order_by}
         LIMIT {limit}''')
  
     return result, total_page, total
@@ -293,6 +300,13 @@ def take_snapshot(snapshot=False):
 
     return imgPath, pid
 
+def save_backup_first(backupFile=''):
+    if backupFile:
+        backupDir = '.bak'
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        os.makedirs(backupDir, exist_ok=True)
+        print(f"[STATUS] backing up {backupFile} to {backupDir}/{backupFile}.{timestamp}")
+        os.system(f'cp {backupFile} {backupDir}/{backupFile}.{timestamp}')
 
 def save_coord_conf(
         tx=0,
@@ -300,9 +314,7 @@ def save_coord_conf(
         bx=0,
         by=0,
     ):
-    backupDir = '.bak'
     # timestamp = datetime.datetime.timestamp(datetime.datetime.now())
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     if bx > 0 and by > 0:
         coords_to_data = (f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}')
@@ -310,8 +322,7 @@ def save_coord_conf(
     else:
         return None
 
-    os.makedirs(backupDir, exist_ok=True)
-    os.system(f'cp {COORD_FILE} {backupDir}/_coords.py.{timestamp}')
+    save_backup_first(COORD_FILE)
 
     #--- write to file
     if CONSOLE_DEBUGGER >= 3: print("[INFO] Updating Coordinates")
@@ -327,11 +338,49 @@ def save_config(config=None):
         return None
 
     #--- write to file
+    save_backup_first(CONFIG_FILE)
     if CONSOLE_DEBUGGER >= 3: print("[INFO] Updating Configs")
     f = open(CONFIG_FILE, 'w+')
     f.write(config+"\n")
     f.close
     return True
+
+
+def set_cronfile_for_read():
+    print(f"[STATUS] created {CRONFILE}")
+    cur_cron = os.popen(f'crontab -l > {CRONFILE}');
+    cur_cron.read();
+    cur_cron.close();
+
+
+def save_cron(
+    onbootwebserver=None,
+    scheduleron=None,
+    sp_start_hr=None,
+    sp_start_min=None,
+    sp_stop_hr=None,
+    sp_stop_min=None,
+    ):
+    newline = ""
+    with open(CRONFILE,'r') as file:
+        print(f"[STATUS] opened {CRONFILE}")
+        for line in file:
+            if 'service-manager.sh' not in line:
+                newline += line
+    if onbootwebserver == 1:
+        newline += '@reboot ${HOME}/repos/pi-speed-tracker/scripts/service-manager.sh -a web -x start >/dev/null 2>&1\n'
+    if scheduleron == 1:
+        newline += '%s %s * * * ${HOME}/repos/pi-speed-tracker/scripts/service-manager.sh -a speed -x start >/dev/null 2>&1\n' % (sp_start_min, sp_start_hr)
+        newline += '%s %s * * * ${HOME}/repos/pi-speed-tracker/scripts/service-manager.sh -a speed -x stop >/dev/null 2>&1\n' % (sp_stop_min, sp_stop_hr)
+    # #--- write to file
+    if CONSOLE_DEBUGGER >= 3: print("[INFO] Updating crontab")
+    f = open(CRONFILE, 'w+')
+    f.write(newline)
+    f.close
+    cur_cron = os.popen(f"crontab {CRONFILE}")
+
+    return True
+
 
 
 #-----------------------------------------
@@ -345,6 +394,7 @@ def render_html_form(
         direction=None,
         speed_limit=None,
         speed_range=None,
+        sort=None,
         ):
     htmllist = Template(filename='html/_form.html')
     html = htmllist.render(
@@ -358,10 +408,11 @@ def render_html_form(
         LEFT_TO_RIGHT=LEFT_TO_RIGHT,
         RIGHT_TO_LEFT=RIGHT_TO_LEFT,
         WEB_SPEED_DICT=WEB_SPEED_DICT,
+        sort=sort,
         )
     return html
 
-def render_html_speed_graph(
+def render_html_overview(
         date_today,
         date_begin,
         date_end,
@@ -426,6 +477,7 @@ def render_html_speed_list(date_today,
         page=1, 
         direction=None,
         speed_range=None,
+        sort='ASC',
         ):
 
     speed_lists, total_pages, total_count = get_data_speed_list(
@@ -436,6 +488,7 @@ def render_html_speed_list(date_today,
         direction=direction,
         speed_range=speed_range,
         speed_limit=SPEED_LIMIT,
+        sort=sort,
         )
 
     if direction == None: direction = True
@@ -478,6 +531,7 @@ def render_html_speed_list(date_today,
         direction=direction,
         speed_limit=SPEED_LIMIT,
         speed_range=speed_range,
+        sort=sort,
         );
 
     query_string = re.sub('&?page=[0-9]*', '', query_string)
@@ -556,7 +610,7 @@ def render_html_calibrate(
     upper_left_y = UPPER_LEFT_Y
     lower_right_x = LOWER_RIGHT_X
     lower_right_y = LOWER_RIGHT_Y
-    message = ''
+    messages = []
     snapshot = False # mode to take snapshot with cam
 
     tx = ty = bx = by = 0
@@ -578,8 +632,10 @@ def render_html_calibrate(
         lower_right_y=by
         save_coord_conf(tx, ty, bx, by)
         snapshot = False
-        message = f"Coordinates saved! [BEGIN] x:{tx} y:{ty} and [END] x:{bx} y:{by}"
-
+        messages.append({
+            'status': 'message',
+            'message': f"Coordinates saved! [BEGIN] x:{tx} y:{ty} and [END] x:{bx} y:{by}",
+            })
 
     image_path, pid=take_snapshot(snapshot)
 
@@ -600,8 +656,7 @@ def render_html_calibrate(
         height=lower_right_y-upper_left_y,
         # upper_left_x=UPPER_LEFT_X if 'UPPER_LEFT_X' in vars() else 0,
         image_path=image_path,
-        message=message,
-        message_status='message',
+        messages=messages,
         )
 
     if pid > 0: daemon_control('start')
@@ -646,12 +701,15 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
 
 def render_html_config_editor(querycomponents=None):
     configContent = None
-    message = ''
+    messages = []
     if 'configs' in querycomponents:
         configContent = querycomponents["configs"][0] 
         saveStatus = save_config(config=configContent)
         if saveStatus == True:
-            message = "Configs Saved!"
+            messages.append({
+            'status': 'message',
+            'message': "Configs Saved!",
+            })
 
     if configContent is None:
         with open(CONFIG_FILE,'r') as file:
@@ -659,9 +717,92 @@ def render_html_config_editor(querycomponents=None):
 
     htmllist = Template(filename='html/_config_editor.html')
     html = htmllist.render(
-        message=message,
+        messages=messages,
         configContent=configContent,
-        message_status='message',
+        )
+    return html
+
+
+def render_html_cron_editor(querycomponents=None):
+    configContent = None
+    messages = []
+    onbootwebserver = False
+    scheduleron = False
+    sp_start_hr=0
+    sp_start_min=0
+    sp_start_ampm = 'AM'
+    sp_stop_hr=0
+    sp_stop_min=0
+    sp_stop_ampm = 'PM'
+
+    # set_cronfile_for_read()
+
+
+    if 'submit' in querycomponents:
+        print(f"[STATUS] processing submitted data")
+        if 'onbootwebserver' in querycomponents:
+            onbootwebserver = int(querycomponents["onbootwebserver"][0]) 
+        if 'scheduleron' in querycomponents:
+            scheduleron = int(querycomponents["scheduleron"][0]) 
+            sp_start_hr = int(querycomponents["sp_start_hr"][0]) 
+            sp_start_min = int(querycomponents["sp_start_min"][0])
+            sp_start_ampm = querycomponents["sp_start_ampm"][0]
+            sp_stop_hr = int(querycomponents["sp_stop_hr"][0]) 
+            sp_stop_min = int(querycomponents["sp_stop_min"][0]) 
+            sp_stop_ampm = querycomponents["sp_stop_ampm"][0] 
+        if save_cron(
+            onbootwebserver=onbootwebserver,
+            scheduleron=scheduleron,
+            sp_start_hr=sp_start_hr + 12 if sp_start_ampm == 'PM' else sp_start_hr,
+            sp_start_min=sp_start_min,
+            sp_stop_hr=sp_stop_hr + 12 if sp_stop_ampm == 'PM' else sp_stop_hr,
+            sp_stop_min=sp_stop_min,
+            ):
+            messages.append({
+                'status': 'message',
+                'message': 'Schedule Updated',
+                })
+
+    set_cronfile_for_read()
+
+
+    min_hours = []
+    with open(CRONFILE,'r') as file:
+        # crondata = file.read()
+                # Read all lines in the file one by one
+        for line in file:
+            # For each line, check if line contains the string
+            if 'service-manager.sh' in line:
+                if '@reboot' in line:
+                    onbootwebserver = True
+                else:
+                    scheduleron = True
+                    min_hours.extend(re.findall('^([0-9]{1,2}) ([0-9]{1,2}) .*', line)[0])
+
+        if min_hours:
+            sp_start_hr = int(min_hours[1])
+            sp_start_min = int(min_hours[0])
+            sp_stop_hr = int(min_hours[3])
+            sp_stop_min = int(min_hours[2])
+            if int(sp_start_hr) > 12:
+                sp_start_ampm='PM'
+                sp_start_hr-=12
+            if int(sp_stop_hr) > 12:
+                sp_stop_ampm='PM'
+                sp_stop_hr-=12
+
+    htmllist = Template(filename='html/_cron_editor.html')
+    html = htmllist.render(
+        # configContent=configContent,
+        messages=messages,
+        onbootwebserver=onbootwebserver,
+        scheduleron=scheduleron,
+        sp_start_hr=sp_start_hr,
+        sp_start_min=sp_start_min,
+        sp_stop_hr=sp_stop_hr,
+        sp_stop_min=sp_stop_min,
+        sp_start_ampm=sp_start_ampm,
+        sp_stop_ampm=sp_stop_ampm,
         )
     return html
 
@@ -673,7 +814,7 @@ def stream_log(self, log=None):
         cmd = f"tail -f {LOG_FILE_WEB}"
     elif log == 'top':
         cmd = "top -b -1 -n 1"
-        # cmd = "top -b -1 -n 1 -u pi"
+        # cmd = f"top -b -1 -n 1 -u {THEUSER}"
     else:
         cmd = f"tail -f {LOG_FILE}"
 
@@ -803,6 +944,10 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             html_body = render_html_config_editor(
                 querycomponents=fields,
                 )
+        elif self.path.startswith('/cron_editor'):
+            html_body = render_html_cron_editor(
+                querycomponents=fields,
+                )
 
         htmlwrapper = Template(filename='html/wrapper.html')
         html = htmlwrapper.render(
@@ -887,6 +1032,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             speed_range = None
             cam = None
             log = None
+            sort = 'ASC'
             metarefresh = True
 
 
@@ -908,6 +1054,8 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 cam = query_components["cam"][0]  
             if 'log' in query_components:
                 log = query_components["log"][0]  
+            if 'sort' in query_components:
+                sort = query_components["sort"][0]  
 
             # ensure begin date is less than end
             date_begin, date_end = date_begin_less_end(date_begin, date_end)
@@ -923,6 +1071,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     page=page,
                     direction=direction,
                     speed_range=speed_range,
+                    sort=sort,
                     )
             elif self.path.startswith('/status'):
                 html_body = render_html_status(
@@ -965,9 +1114,14 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     querycomponents=query_components,
                     )
                 metarefresh = False
+            elif self.path.startswith('/cron_editor'):
+                html_body = render_html_cron_editor(
+                    querycomponents=query_components,
+                    )
+                metarefresh = False
             else:
                 # speed list count by hr
-                html_body = render_html_speed_graph(
+                html_body = render_html_overview(
                     date_today=date_today,
                     date_begin=date_begin,
                     date_end=date_end,

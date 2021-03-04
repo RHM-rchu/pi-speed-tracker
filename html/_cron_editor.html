@@ -1,0 +1,127 @@
+<div id="config_editor">
+    <form id="cron_editor" class="cron_editor" method="post" action="">
+        <div class="form_description">
+            <h2>Scheduler</h2>
+            <p>Schedule a time to automatically stop and start your speed tracker</p>
+        </div>
+        % if messages:
+        % for m in messages: 
+        <div class="${m['status']}">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            ${m['message']}
+        </div>
+        %endfor
+        % endif
+        <div class="cronform">
+            <ul>
+                <li id="li_2">
+                    <label class="description" for="element_2">WebServer </label>
+                    <span>
+                        <input id="element_2_1" name="onbootwebserver" class="element checkbox" type="checkbox" ${'checked' if onbootwebserver is True else ''} value="1" />
+                        <label class="choice" for="element_2_1">Automatically Start</label>
+                    </span>
+                    <p class="guidelines" id="guide_2"><small>Start this WebServer when you computer restarts</small></p>
+                </li>
+
+                <li id="li_2">
+                    <label class="description" for="element_2">Scheduler</label>
+                    <span>
+                        <input id="scheduleron" name="scheduleron" class="element checkbox" type="checkbox" ${'checked' if scheduleron is True else ''} value="1" />
+                        <label class="choice" for="element_2_1">Enable Scheduler</label>
+                    </span>
+                    <p class="guidelines" id="guide_2"><small>Select you want to automatically turn on/off the speed cam at specific times</small></p>
+                </li>
+                <div id="schedulerfields">
+                <li id="li_1">
+                    <label class="description" for="element_3">Start Camera </label>
+                    <span>
+                        <select name="sp_start_hr" id="element_3_1">
+                    }
+${makeoptions(1, 13, 1, int(sp_start_hr))}
+                        </select>
+                        <xinput id="element_3_2" name="sp_start_hr" class="element text " size="2" type="text" maxlength="2" value="" /> :
+                        <label>HH</label>
+                    </span>
+                    <span>
+                        <select name="sp_start_min" id="element_3_3">
+${makeoptions(0, 12, 5, int(sp_start_min))}
+                        </select> :
+                        <label>MM</label>
+                    </span>
+                    <span>
+                        <select class="element select" style="width:4em" id="element_1_4" name="sp_start_ampm">
+                            <option value="AM" ${'selected="selected"' if sp_start_ampm == 'AM' else ''}>AM</option>
+                            <option value="PM" ${'selected="selected"' if sp_start_ampm == 'PM' else ''}>PM</option>
+                        </select>
+                        <label>AM/PM</label>
+                    </span>
+                    <p class="guidelines" id="guide_3"><small>Set time to <strong>AUTO START</strong> the Speed Tracker</small></p>
+                </li>
+
+                <li id="li_3">
+                    <label class="description" for="element_4">Stop Camera </label>
+                    <span>
+                        <select name="sp_stop_hr" id="element_4_1">
+${makeoptions(1, 13, 1, int(sp_stop_hr))}
+                        </select> :
+                        <label>HH</label>
+                    </span>
+                    <span>
+                        <select name="sp_stop_min" id="element_4_3">
+${makeoptions(0, 12, 5, int(sp_stop_min))}
+                        </select> :
+                        <label>MM</label>
+                    </span>
+                    <span>
+                        <select class="element select" style="width:4em" id="element_4_4" name="sp_stop_ampm">
+                            <option value="AM" ${'selected="selected"' if sp_stop_ampm == 'AM' else ''}>AM</option>
+                            <option value="PM" ${'selected="selected"' if sp_stop_ampm == 'PM' else ''}>PM</option>
+                        </select>
+                        <label>AM/PM</label>
+                    </span>
+                    <p class="guidelines" id="guide_1"><small>Set time to <strong>AUTO STOP</strong> the Speed Tracker</small></p>
+                </li>
+                </div>
+                <li class="buttons">
+                    <input id="saveForm" class="button_text" type="submit" name="submit" value="Submit" />
+                </li>
+            </ul>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+$(window).on('load', function() {
+    if( $('#scheduleron').is(':checked') ) {
+        $("#schedulerfields").show();
+    }
+});
+
+$('#scheduleron').click(function() {
+    if( $(this).is(':checked')) {
+        $("#schedulerfields").show();
+    } else {
+        $("#schedulerfields").hide();
+    }
+}); 
+</script>
+<%def name="makeoptions(br, er, offset, match)">
+% for i in range(br, er): 
+<% 
+i = i * offset 
+%>
+%if i == match:
+<% 
+    selected="selected"
+%>
+%else:
+<% 
+    selected=""
+%>
+%endif
+%if i < 10:
+                            <option value="0${i}" ${selected}>0${i}</option>
+% else:
+                            <option value="${i}" ${selected}>${i}</option>
+%endif
+% endfor
+</%def>

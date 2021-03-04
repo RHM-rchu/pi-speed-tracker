@@ -30,9 +30,6 @@ Chart.pluginService.register({
             var xAxe = chart.scales[chart.config.options.scales.xAxes[0].id];
             var yAxe = chart.scales[chart.config.options.scales.yAxes[0].id];
             
-            // I'm not good at maths
-            // So I couldn't find a way to make it work ...
-            // ... without having the `min` property set to 0
             if(yAxe.min != 0) return;
             
             ctxPlugin.strokeStyle = "red";
@@ -55,7 +52,7 @@ var chart1 = new Chart(ctx, {
 % endfor
         ],
         datasets: [{
-            label: 'Count by Categories',
+            // label: 'Count by Categories',
             data: [
 % for a in percent_sp_list:
               ${percent_sp_list[a]['count']},
@@ -75,6 +72,24 @@ var chart1 = new Chart(ctx, {
             borderWidth: 1
         }]
     },
+    options: {
+      responsive: true,
+      legend: {
+          display: false,
+      },
+      scales: {
+        xAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: 'Categories'
+          }
+        }]
+      },
+      title: {
+        display: true,
+        text: 'Count by Categories for ${date_begin} to ${date_end}'
+      }
+    }
 });
 
 document.getElementById('update1').addEventListener('click', function() {
@@ -138,7 +153,7 @@ document.getElementById('update1').addEventListener('click', function() {
         },
         title: {
           display: true,
-          text: 'Speed Limit ${speed_limit}mph by hour'
+          text: 'Hourly breakdown from ${date_begin} to ${date_end}'
         }
       }
     };

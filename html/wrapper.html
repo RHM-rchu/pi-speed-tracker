@@ -11,16 +11,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
     <script src="/html/assets/Chart.js"></script>
     <script src="/html/assets/utils.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 </head>
 <%
 nav_links = {
-    '/':'Overview',
-    '/list/':'By Time',
-    '/day-of-week':'Day of Week',
-    '/status':'CAM Status',
-    '/calibrate':'Calibrate CAM',
-    '/config_editor':'Edit Configs',
-    '/log-view':'Real-Time Logs',
+    '/': {
+        'name':'Overview',
+        'class':'graph',
+    },
+    '/list/': {
+        'name':'By Time',
+        'class':'graph',
+    },
+    '/day-of-week': {
+        'name':'Day of Week',
+        'class':'graph',
+    },
+    '/status': {
+        'name':'CAM Status',
+        'class':'cam',
+    },
+    '/calibrate': {
+        'name':'Calibrate CAM',
+        'class':'calibrate',
+    },
+    '/config_editor': {
+        'name':'Edit Configs',
+        'class':'edit',
+    },
+    '/cron_editor': {
+        'name':'Scheduler',
+        'class':'cal',
+    },
+    '/log-view': {
+        'name':'Real-Time Logs',
+        'class':'log',
+    },
+
 }
 %>
 <nav role="navigation">
@@ -46,7 +74,7 @@ nav_links = {
         <ul id="menu">
 % for link in nav_links:
             <a href="${link}">
-                <li>${nav_links[link]}</li>
+                <li class="${nav_links[link]['class']}">${nav_links[link]['name']}</li>
             </a>
 % endfor
         </ul>
@@ -62,7 +90,7 @@ ${body}
     <footer>
         <ul class="list-inline">
 % for link in nav_links:
-            <li class="list-inline-item"><a href="${link}">${nav_links[link]}</a></li>
+            <li class="list-inline-item"><a href="${link}">${nav_links[link]['name']}</a></li>
 % endfor
         </ul>
 % if metarefresh == True:

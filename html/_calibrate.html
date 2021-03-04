@@ -4,14 +4,21 @@
         <li><a href="/calibrate?snapshot=1">Retake snapshot</a></li>
     </ul>
 </div>
-% if message != '':
-    <div class="${message_status}">
-        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-        ${message}
-    </div>
+
+<div class="form_description">
+    <h2>Setting the Point Of Interest (POI).</h2>
+    <p>Start from the top left and draw down to the button right. Draw a rectangle on the road area you want to monitor. Ensure you have a little buffer to the left and right so cars don't get cut off as they leave the Field Of View (FOV). This will be the hotzone we monitor to track cars. The save button is not viewable till create the rectangle with your mouse. Each time you move your camera click the [<a href="/calibrate?snapshot=1">Retake snapshot</a>] to snap another image.</p>
+</div>
+
+% if messages:
+% for m in messages: 
+<div class="${m['status']}">
+    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+    ${m['message']}
+</div>
+%endfor
 % endif
-<h3>Setting the Point Of Interest (POI).</h3>
-<p style="max-width: 1200px">Start from the top left and draw down to the button right. Draw a rectangle on the road area you want to monitor. Ensure you have a little buffer to the left and right so cars don't get cut off as they leave the Field Of View (FOV). This will be the hotzone we monitor to track cars. The save button is not viewable till create the rectangle with your mouse. Each time you move your camera click the [<a href="/calibrate">Retake snapshot</a>] to snap another image.</p>
+
 <canvas id="canvas" width="600px" height="300px"></canvas>
 
 <form id="reg" method="get" action="">

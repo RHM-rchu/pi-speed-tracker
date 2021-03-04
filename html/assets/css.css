@@ -78,7 +78,9 @@ body {
     transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
         background 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
         opacity 0.55s ease;
+
 }
+
 
 #menuToggle span:first-child {
     transform-origin: 0% 0%;
@@ -138,6 +140,38 @@ body {
 #menu li {
     padding: 10px 0;
     font-size: 22px;
+
+  padding-left: 1.3em;
+}
+#menu li:before {
+  display: inline-block;
+  margin-left: -1.3em;
+  width: 1.3em; 
+}
+#menu li.graph:before, footer li.graph:before {
+  content: "\f080"; 
+  font-family: FontAwesome;
+}
+#menu li.cam:before, footer li.cam:before  {
+  content: "\f030"; 
+  font-family: FontAwesome;
+}
+#menu li.calibrate:before, footer li.calibrate:before  {
+  content: "\f125"; 
+  /*content: "\f05b"; */
+  font-family: FontAwesome;
+}
+#menu li.cal:before, footer li.cal:before  {
+  content: "\f073"; 
+  font-family: FontAwesome;
+}
+#menu li.edit:before, footer li.edit:before  {
+  content: "\f044"; 
+  font-family: FontAwesome;
+}
+#menu li.log:before, footer li.log:before  {
+  content: "\f017"; 
+  font-family: FontAwesome;
 }
 
 /*
@@ -203,11 +237,78 @@ textarea.configs{
     background-color : #D1D1D1;
     border:1px solid #CECECE;
     box-shadow: 0 0 10px #719ECE;
+    white-space: nowrap;
+    overflow: auto;
 }
 textarea.configs:focus {
     outline: none !important;
     border:1px solid red;
     box-shadow: 0 0 10px #719ECE;
+}
+
+
+div.cronform  {
+    box-shadow: 0 10px 10px #719ECE;
+    /*border:1px solid #CECECE;*/
+    max-width: 250px;
+}
+label.description
+{
+    border:none;
+    color:#222;
+    display:block;
+    font-size:95%;
+    font-weight:700;
+    line-height:150%;
+    padding:0 0 1px;
+}
+form li span label
+{
+    clear:both;
+    /*color:#444;*/
+    display:block;
+    font-size: .7em;
+    /*line-height:9px;*/
+    margin:0;
+    padding-top:1px;
+}
+form li span {
+    color: #444;
+    float: left;
+    margin: 0 4px 0 0;
+    padding: 0 0 8px;
+}
+form li.highlighted
+{
+    background-color:#fff7c0;
+}
+
+form .guidelines
+{
+    background:#f5f5f5;
+    border:1px solid #e6e6e6;
+    color:#444;
+    font-size:80%;
+    left:100%;
+    line-height:130%;
+    margin:0 0 0 8px;
+    padding:8px 10px 9px;
+    position:absolute;
+    top:0;
+    visibility:hidden;
+    width:42%;
+    z-index:1000;
+}
+form .guidelines small
+{
+    font-size:105%;
+}
+form li:hover .guidelines
+{
+    visibility:visible;
+}
+form #schedulerfields {
+    display: none;
 }
 
 /* config_editor ---------------------------*/
@@ -608,7 +709,7 @@ a:link, a:visited, a:hover, a:focus, a:active {
     /* color of the tracking area */
 }
 
-.container_log .preformatted::-webkit-scrollbar-thumb {
+.container_log .preformatted::-webkit-scrollbar-thumb, textarea.configs::-webkit-scrollbar-thumb {
     background-color: orange;
     /* color of the scroll thumb */
     border-radius: 24px;

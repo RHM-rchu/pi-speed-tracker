@@ -1,16 +1,26 @@
 
 <div id="config_editor">
-% if message != '':
-    <div class="${message_status}">
-        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-        ${message}
+    <div class="form_description">
+        <h2>Configurations</h2>
+        <p>Configure your speed tracker</p>
     </div>
+% if messages:
+% for m in messages: 
+    <div class="${m['status']}">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+        ${m['message']}
+    </div>
+%endfor
 % endif
 <form id="reg" method="POST" action="">
-    <label>Current Configs</label>
-    <br>
-    <textarea class="configs" name="configs">${configContent}</textarea>
-    <br>
-    <input id="save" class="button_text" type="submit" name="save" value="SAVE" />
+    <ul>
+        <li id="li_2">
+            <label>Current Configs</label>
+            <br>
+            <textarea class="configs" name="configs" >${configContent}</textarea>
+            <br>
+            <input id="save" class="button_text" type="submit" name="save" value="SAVE" />
+        </li>
+    </ul>
 </form> 
 </div>

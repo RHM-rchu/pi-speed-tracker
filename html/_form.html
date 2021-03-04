@@ -22,6 +22,17 @@
     </li>
 % endif
 
+ % if sort:
+    <li id="li_6" >
+    <select name="sort" id="sort">
+    <option ${'selected' if sort == 'ASC' else ''} value="ASC">Oldest</option>
+    <option ${'selected' if sort == 'DESC' else ''} value="DESC">Most Recent</option>
+    </select>
+        <label for="end">Order By</label>
+    </li>
+ % endif
+
+
  % if direction:
     <li id="li_4" >
     <select name="direction" id="direction-select">
@@ -40,9 +51,6 @@
     <li id="li_5" >
     <select name="speed_range" id="speed_range-select">
       <option value="">Any</option>
-<%
-isBanana = ""
-%>
 % for a in WEB_SPEED_DICT:
   % if speed_range == a['name']:
 <%
