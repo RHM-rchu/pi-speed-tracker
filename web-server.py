@@ -347,7 +347,7 @@ def save_config(config=None):
 
 
 def set_cronfile_for_read():
-    print(f"[STATUS] created {CRONFILE}")
+    # print(f"[STATUS] created {CRONFILE}")
     cur_cron = os.popen(f'crontab -l > {CRONFILE}');
     cur_cron.read();
     cur_cron.close();
@@ -363,7 +363,7 @@ def save_cron(
     ):
     newline = ""
     with open(CRONFILE,'r') as file:
-        print(f"[STATUS] opened {CRONFILE}")
+        # print(f"[STATUS] opened {CRONFILE}")
         for line in file:
             if 'service-manager.sh' not in line:
                 newline += line
@@ -739,7 +739,7 @@ def render_html_cron_editor(querycomponents=None):
 
 
     if 'submit' in querycomponents:
-        print(f"[STATUS] processing submitted data")
+        # print(f"[STATUS] processing submitted data")
         if 'onbootwebserver' in querycomponents:
             onbootwebserver = int(querycomponents["onbootwebserver"][0]) 
         if 'scheduleron' in querycomponents:
@@ -762,8 +762,8 @@ def render_html_cron_editor(querycomponents=None):
                 'status': 'message',
                 'message': 'Schedule Updated',
                 })
-
-    set_cronfile_for_read()
+    else:
+        set_cronfile_for_read()
 
 
     min_hours = []
