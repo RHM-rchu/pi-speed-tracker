@@ -3,5 +3,7 @@ If you made a change to the configs and you don't see your updates on these page
 <br>
 
 <input id="restart_webserver" class="button_text" type="submit" name="restart_webserver" value="Restart the WebServer" />
+% if sp_tracker_running > 0:
 <input id="restart_speedcam" class="button_text" type="submit" name="restart_speedcam" value="Restart the Speed Cam" />
+% endif
 </div>

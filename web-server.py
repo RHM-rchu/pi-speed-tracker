@@ -390,8 +390,11 @@ def save_cron(
 #-----------------------------------------
 def render_html_restart_service(
         ):
+    sp_tracker_running = is_daemon_active('speed')
     htmllist = Template(filename='html/_restart_service.html')
-    return  htmllist.render()
+    return  htmllist.render(
+        sp_tracker_running=sp_tracker_running
+        )
 
 def render_html_form(
         date_today, 
