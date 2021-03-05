@@ -212,17 +212,17 @@ def is_daemon_active(daemon):
     os.remove('tmp')
     return tmppid
 
-def daemon_control(cam):
+def restart_service(cam):
     #--- turn cam on/off
     if cam == "restart-speedcam":
         if CONSOLE_DEBUGGER >= 3: print("[INFO] restarting speed cam")
         os.system("./scripts/service-manager.sh -a speed -x restart")
         time.sleep(1)
-    if cam == "start":
+    if cam == "start-speedcam":
         if CONSOLE_DEBUGGER >= 3: print("[INFO] starting speed cam")
         os.system("./scripts/service-manager.sh -a speed -x start")
         time.sleep(1)
-    elif cam == "stop":
+    elif cam == "stop-speedcam":
         if CONSOLE_DEBUGGER >= 3: print("[INFO] stopping speed cam")
         os.system("./scripts/service-manager.sh -a speed -x stop" )
         time.sleep(1)
@@ -278,7 +278,7 @@ def take_snapshot(snapshot=False):
 
     if pid > 0: 
         if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Stopping speed tracker")
-        daemon_control('stop')
+        restart_service('stop-speedcam')
 
     camera = PiCamera()
     camera.resolution = RESOLUTION
@@ -322,7 +322,7 @@ def save_coord_conf(
 
     if bx > 0 and by > 0:
         coords_to_data = (f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}')
-        print(f"coords_to_data")
+        # print(f"coords_to_data")
     else:
         return None
 
@@ -333,8 +333,6 @@ def save_coord_conf(
     f = open(COORD_FILE, 'w+')
     f.write(coords_to_data+"\n")
     f.close
-    # time.sleep(1)
-    # daemon_control('restart-web')
 
 
 def save_config(config=None):
@@ -462,7 +460,7 @@ def render_html_overview(
         speed_limit=SPEED_LIMIT,
         );
     graph_hrly = Template(filename='html/_overview.html')
-    print(speed_lists)
+    # print(speed_lists)
 
     html = graph_hrly.render(
         graph_hrly_datas=graph_hrly_datas,
@@ -653,8 +651,8 @@ def render_html_calibrate(
     image_path, pid=take_snapshot(snapshot)
 
     if pid > 0: 
-        if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Starting backup speed tracker")
-        daemon_control('start')
+        if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Starting speed tracker")
+        restart_service('start-speedcam')
 
     restart_service = render_html_restart_service()
     calibrator = Template(filename='html/_calibrate.html')
@@ -672,7 +670,7 @@ def render_html_calibrate(
         restart_service=restart_service,
         )
 
-    if pid > 0: daemon_control('start')
+    # if pid > 0: restart_service('start-speedcam')
     return html
 
 
@@ -1088,8 +1086,8 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     speed_range=speed_range,
                     sort=sort,
                     )
-            elif self.path.startswith('/restart_cam'):
-                daemon_control(cam)
+            elif self.path.startswith('/restart_service'):
+                restart_service(cam)
                 html = cam
             elif self.path.startswith('/status'):
                 html_body = render_html_status(

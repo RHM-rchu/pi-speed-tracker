@@ -45,13 +45,13 @@ $(document).ready(function() {
 
         toggleState = $('.toggle-btn').attr('class').indexOf('active')
         if(toggleState > 0){
-            camAction = 'stop'
+            camAction = 'stop-speedcam'
         } else {
-            camAction = 'start'
+            camAction = 'start-speedcam'
         }
         $.ajax({
             type: "GET",
-            url: "/restart_cam",
+            url: "/restart_service",
             data: { 
                 cam: camAction, 
                 // access_token: $("#access_token").val() 

@@ -105,7 +105,7 @@ $("#restart_webserver").click(function(e) {
     e.preventDefault();
     $.ajax({
         type: "GET",
-        url: "/restart_cam",
+        url: "/restart_service",
         data: { 
             cam: 'restart-web',
             // access_token: $("#access_token").val() 
