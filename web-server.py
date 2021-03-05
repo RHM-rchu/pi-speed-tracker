@@ -214,6 +214,10 @@ def is_daemon_active(daemon):
 
 def daemon_control(cam):
     #--- turn cam on/off
+    if cam == "restart-speedcam":
+        if CONSOLE_DEBUGGER >= 3: print("[INFO] restarting speed cam")
+        os.system("./scripts/service-manager.sh -a speed -x restart")
+        time.sleep(1)
     if cam == "start":
         if CONSOLE_DEBUGGER >= 3: print("[INFO] starting speed cam")
         os.system("./scripts/service-manager.sh -a speed -x start")
@@ -386,6 +390,11 @@ def save_cron(
 #-----------------------------------------
 # HTML
 #-----------------------------------------
+def render_html_restart_service(
+        ):
+    htmllist = Template(filename='html/_restart_service.html')
+    return  htmllist.render()
+
 def render_html_form(
         date_today, 
         date_begin, 
@@ -635,6 +644,10 @@ def render_html_calibrate(
         messages.append({
             'status': 'message',
             'message': f"Coordinates saved! [BEGIN] x:{tx} y:{ty} and [END] x:{bx} y:{by}",
+            },
+            {
+            'status': 'warn',
+            'message': f"Restart the WebServer to load in the new configs",
             })
 
     image_path, pid=take_snapshot(snapshot)
@@ -643,9 +656,8 @@ def render_html_calibrate(
         if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Starting backup speed tracker")
         daemon_control('start')
 
+    restart_service = render_html_restart_service()
     calibrator = Template(filename='html/_calibrate.html')
-
-
     html = calibrator.render( 
         # query_string=query_string,
         upper_left_x=upper_left_x,
@@ -657,6 +669,7 @@ def render_html_calibrate(
         # upper_left_x=UPPER_LEFT_X if 'UPPER_LEFT_X' in vars() else 0,
         image_path=image_path,
         messages=messages,
+        restart_service=restart_service,
         )
 
     if pid > 0: daemon_control('start')
@@ -674,7 +687,7 @@ def render_html_log(log=None):
         )
     return html
 
-def render_html_status(date_today, cam=None, web_statuspage_limit=None):
+def render_html_status(date_today, web_statuspage_limit=None):
     latest_records, total = get_data_server_status(date_today, web_statuspage_limit)
 
     i=0
@@ -686,15 +699,15 @@ def render_html_status(date_today, cam=None, web_statuspage_limit=None):
         latest_records[i]['sd'] = round(float(speed['sd']), 0)
         i+=1
 
-    daemon_control(cam)
-
     sp_tracker_running = is_daemon_active('speed')
 
+    restart_service = render_html_restart_service()
     htmllist = Template(filename='html/_status.html')
     html = htmllist.render(sp_tracker_running=sp_tracker_running,
         latest_records=latest_records,
         total=total,
         web_statuspage_limit=web_statuspage_limit,
+        restart_service=restart_service,
         )
     return html
 
@@ -715,10 +728,12 @@ def render_html_config_editor(querycomponents=None):
         with open(CONFIG_FILE,'r') as file:
             configContent = file.read()
 
+    restart_service = render_html_restart_service()
     htmllist = Template(filename='html/_config_editor.html')
     html = htmllist.render(
         messages=messages,
         configContent=configContent,
+        restart_service=restart_service,
         )
     return html
 
@@ -1073,10 +1088,12 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     speed_range=speed_range,
                     sort=sort,
                     )
+            elif self.path.startswith('/restart_cam'):
+                daemon_control(cam)
+                html = cam
             elif self.path.startswith('/status'):
                 html_body = render_html_status(
                     date_today=date_today,
-                    cam=cam,
                     web_statuspage_limit=WEB_STATUSPAGE_LIMIT,
                     )
             elif self.path.startswith('/log-view'):

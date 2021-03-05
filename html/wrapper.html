@@ -7,12 +7,12 @@
 % endif
     <title>Speed Tracker</title>
     <link rel="stylesheet" href="/html/assets/css.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
     <script src="/html/assets/Chart.js"></script>
     <script src="/html/assets/utils.js"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 </head>
 <%
 nav_links = {
@@ -53,24 +53,12 @@ nav_links = {
 %>
 <nav role="navigation">
     <div id="menuToggle">
-        <!--
-    A fake / hidden checkbox is used as click reciever,
-    so you can use the :checked selector on it.
-    -->
         <input type="checkbox" />
-        <!--
-    Some spans to act as a hamburger.
-    
-    They are acting like a real hamburger,
-    not that McDonalds stuff.
-    -->
+
         <span></span>
         <span></span>
         <span></span>
-        <!--
-    Too bad the menu has to be inside of the button
-    but hey, it's pure CSS magic.
-    -->
+
         <ul id="menu">
 % for link in nav_links:
             <a href="${link}">
@@ -80,7 +68,9 @@ nav_links = {
         </ul>
     </div>
 </nav>
-
+<div class="" sylte="display=None;" id="message_display">
+    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+</div>
 <div class="body">
 ${body}
 </div>
@@ -95,7 +85,10 @@ ${body}
         </ul>
 % if metarefresh == True:
         <p class="couter">Auto-Refresh in <span id="CDTimer">???</span> secs.</p>
+% endif
 <script language="JavaScript" type="text/javascript">
+
+% if metarefresh == True:
 /*<![CDATA[*/
 var TimerVal = ${page_refresh};
 var TimerSPan = document.getElementById("CDTimer");
@@ -106,8 +99,62 @@ function CountDown(){
    if (TimerVal<0) { TimerVal=0 } //improvement by vivalibre, tq 
 } CountDown() 
 /*]]>*/ 
-</script>
 % endif
+
+$("#restart_webserver").click(function(e) {
+    e.preventDefault();
+    $.ajax({
+        type: "GET",
+        url: "/restart_cam",
+        data: { 
+            cam: 'restart-web',
+            // access_token: $("#access_token").val() 
+        },
+        success: function(result) {
+            console.log('ok');
+            $("html, body").animate({ scrollTop: 0 }, "fast");
+            $("#message_display").attr('class', 'message');
+            $('#message_display').show();
+            $("#message_display").contents()[0].data = 'WebServer restarted';
+        },
+        error: function(result) {
+            console.log('error');
+            $("html, body").animate({ scrollTop: 0 }, "fast");
+            $("#message_display").attr('class', 'error');
+            $('#message_display').show();
+            $("#message_display").contents()[0].data = 'WebServer had issues restarting';
+            // $("#message_display").append('WebServer had issues restarting');
+            // $('message_display').scrollTo('#target');
+        }
+    });
+});
+$("#restart_speedcam").click(function(e) {
+    e.preventDefault();
+    $.ajax({
+        type: "GET",
+        url: "/restart_cam",
+        data: { 
+            cam: 'restart-speedcam',
+            // access_token: $("#access_token").val() 
+        },
+        success: function(result) {
+            console.log('ok');
+            $("html, body").animate({ scrollTop: 0 }, "fast");
+            $("#message_display").attr('class', 'message');
+            $('#message_display').show();
+            $("#message_display").contents()[0].data = 'Speed Cam restarted';
+        },
+        error: function(result) {
+            console.log('error');
+            $("html, body").animate({ scrollTop: 0 }, "fast");
+            $("#message_display").attr('class', 'error');
+            $('#message_display').show();
+            $("#message_display").contents()[0].data = 'Speed Cam had issues restarting';
+        }
+    });
+});
+
+</script>
     </footer>
 </div>
 

@@ -1,8 +1,9 @@
+
 <table class="paleBlueRows list">
     <thead>
         <tr>
             <th>The CAM ${'is [RUNNING]' if int(sp_tracker_running) > 0 else 'has [STOPPED]'}
-                <a href="/status?cam=${'stop' if int(sp_tracker_running) > 0 else 'start'}" id="cam-toggle-link">
+                <a xhref="/status?cam=${'stop' if int(sp_tracker_running) > 0 else 'start'}" id="cam-toggle-link">
                     <div class="container">
                         <div class="toggle-btn ${'active' if int(sp_tracker_running) > 0 else ''} ">
                             <div class="circle"></div>
@@ -36,30 +37,52 @@
         </td>
     </tr>
     % endfor
-    <tfoot>
-        <tr>
-            <td colspan="2">
-If you made a change to the configs and you don't see your updates on these pages, you may need to restart the WebServer to reload the configs. Restart this WebServer click <a href="/status?cam=restart-web">HERE</a>. 
-            </td>
-        </tr>
-    </tfoot>
 </table>
 <script type="text/javascript">
 $(document).ready(function() {
 
-    $('.toggle-btn').click(function() {
-        $(this).toggleClass(".toggle-btn active");
-        var element = document.getElementById("cam-toggle-link").getAttribute("href")
+    $('.toggle-btn').click(function(e) {
+
+        toggleState = $('.toggle-btn').attr('class').indexOf('active')
+        if(toggleState > 0){
+            camAction = 'stop'
+        } else {
+            camAction = 'start'
+        }
+        $.ajax({
+            type: "GET",
+            url: "/restart_cam",
+            data: { 
+                cam: camAction, 
+                // access_token: $("#access_token").val() 
+            },
+            success: function(result) {
+                $('#message_display').show();
+                $('.toggle-btn').toggleClass(".toggle-btn active");
+                // console.log('1 - ' + toggleState)
+                toggleState = $('.toggle-btn').attr('class').indexOf('active')
+                if(toggleState > 0){
+                    msg = 'Running'
+                    $("#message_display").attr('class', 'message');
+                } else {
+                    msg = 'STOPPED'
+                    $("#message_display").attr('class', 'warn');
+                }
+                // $("#message_display").text('CAM ' + msg);
+                $("#message_display").contents()[0].data = 'CAM ' + msg;
+            },
+            error: function(result) {
+                console.log('error');
+                $("html, body").animate({ scrollTop: 0 }, "fast");
+                $("#message_display").toggleClass("error");
+                $('#message_display').show();
+                $("#message_display").append('CAM had issues restarting');
+                $('message_display').scrollTo('#target');
+            }
+        });
     });
 });
 
 
-$(document).ready(function() {
-    if (window.location.href.indexOf("cam=") > -1) {
-        console.log("cam= in URL redirecting");
-        setTimeout(function() { window.location.href = "/status"; }, 500);
-
-    }
-});
 </script>
 

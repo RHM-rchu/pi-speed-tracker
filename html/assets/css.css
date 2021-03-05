@@ -390,7 +390,7 @@ table.paleBlueRows {
     height: 200px;
     text-align: left;
     border-collapse: collapse;
-    min-width: 900px;
+    min-width: 500px;
     /*background: #fff;*/
 }
 
@@ -627,6 +627,12 @@ div.prev_img:hover {
 
 /* Status Page container ---------------------------*/
 
+div .restart_service {
+    max-width: 900px;
+    margin:0 auto;
+    padding-bottom: 10px;
+
+}
 .container {
     position: relative;
     top: 2%;
