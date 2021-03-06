@@ -848,7 +848,7 @@ def get_media_path(subpath=''):
     # media_path = PATH_TO_IMAGES + '/' + cap_time.strftime("%Y/%m/%d") + subpath
     media_path = PATH_TO_IMAGES + subpath
     media_base_path = os.path.dirname(media_path)
-    os.makedirs(media_base_path, exist_ok=True)
+    os.makedirs(media_path, exist_ok=True)
     # ls -tp media/images/2021/03/05/debug | grep -v '/$' | tail -n +51 | xargs -d '\n' rm -f --
     # stream = os.popen(f"ls -1tr {media_path} | head -n -10")
     # output = stream.read()
