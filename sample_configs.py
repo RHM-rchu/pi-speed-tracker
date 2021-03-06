@@ -2,8 +2,8 @@
 # CONFIGS
 #-----------------------------------------
 # define some constants
-L2R_DISTANCE = 120                      #<---- enter your distance to road in ft - bottom left corner from calibrator.py, step (8) of readme
-R2L_DISTANCE = 120                      #<---- enter your distance to road in ft - bottom right corner from calibrator.py, step (8) of readme
+L2R_DISTANCE = 67                       #<---- in feet measure cam lens to the center point of lane going left to right
+R2L_DISTANCE = 76                       #<---- in feet measure cam lens to the center point of lane going left to right
 CROP_OffSET = 80                        #<---- sift the snapshot over by 'n'px left or right on final capture to mitigate cropping the target
 SAVE_CSV = True                         #<---- record the results in .csv format in carspeed_(date).csv
 MIN_SPEED_SAVE = 1                      #<---- enter the minimum speed for publishing to MQTT broker and saving to CSV
@@ -17,8 +17,7 @@ BLURSIZE = (15,15)                      #<---- ignore unless you know what you a
 RESOLUTION = (1280,720)                 #<---- Camera resolution, this is fine
 FOV = 62.2                              #<---- Pi Camera v2 is wider
 FPS = 30
-SHOW_BOUNDS = True
-SHOW_IMAGE = True
+SHOW_IMAGE = 'off'
 CONSOLE_DEBUGGER = 3                   #<---- 3: info, 2: save & info, 1: notice & save & info
 
 # the following enumerated values are used to make the program more readable, safe to ignore
@@ -33,7 +32,7 @@ MIN_SAVE_BUFFER = 2
 
 # web page configs
 WEB_AUTO_REFRESH = 900                  #<---- auto update the webpages in sec
-WEB_STATUSPAGE_LIMIT = 100              #<---- limits results per page on status page
+WEB_STATUSPAGE_LIMIT = 25               #<---- limits results per page on status page
 WEB_REQURE_AUTH = True                  #<---- Must use user/pass to access web UI
 WEB_USERNAME = "speed"
 WEB_PASSWORD = "racer"
@@ -78,5 +77,5 @@ DB_DIR_PATH = "db"
 DB_NAME = "speed-tracker.sqlite3"
 DB_TABLE="speeds"
 DB_PATH = DB_DIR_PATH + '/' +  DB_NAME
-LOG_FILE='log/speed_tracker.log'
-LOG_FILE_WEB='log/py-web-server.log'
+LOG_FILE='logs/speed-tracker.log'
+LOG_FILE_WEB='logs/web-server.log'

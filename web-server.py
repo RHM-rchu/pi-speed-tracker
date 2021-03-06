@@ -212,8 +212,13 @@ def is_daemon_active(daemon):
     os.remove('tmp')
     return tmppid
 
-def restart_service(cam):
+def restart_services(cam):
     #--- turn cam on/off
+    if cam == "debugger-speedcam":
+        if CONSOLE_DEBUGGER >= 3: print("[INFO] restarting speed cam with debugger")
+        os.system("./scripts/service-manager.sh -a speed -x stop")
+        os.system("./scripts/service-manager.sh -a speed -x start-debug")
+        time.sleep(1)
     if cam == "restart-speedcam":
         if CONSOLE_DEBUGGER >= 3: print("[INFO] restarting speed cam")
         os.system("./scripts/service-manager.sh -a speed -x restart")
@@ -278,7 +283,7 @@ def take_snapshot(snapshot=False):
 
     if pid > 0: 
         if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Stopping speed tracker")
-        restart_service('stop-speedcam')
+        restart_services('stop-speedcam')
 
     camera = PiCamera()
     camera.resolution = RESOLUTION
@@ -320,8 +325,24 @@ def save_coord_conf(
     ):
     # timestamp = datetime.datetime.timestamp(datetime.datetime.now())
 
+    if tx > bx:
+        bx,tx = tx,bx   
+    if ty > by:
+        by,ty = ty,by  
+    # I know this is not needed bc of the above, but you never know
+    t_width = tx-bx if tx > bx else bx-tx
+    t_height = ty-by if ty > by else by-ty
+
     if bx > 0 and by > 0:
-        coords_to_data = (f'UPPER_LEFT_X = {tx}\nUPPER_LEFT_Y = {ty}\nLOWER_RIGHT_X = {bx}\nLOWER_RIGHT_Y = {by}')
+        coords_to_data = (f"""
+UPPER_LEFT_X = {tx}
+UPPER_LEFT_Y = {ty}
+LOWER_RIGHT_X = {bx}
+LOWER_RIGHT_Y = {by}
+TARGET_WIDTH = {t_width}
+TARGET_HEIGHT = {t_height}
+""")
+
         # print(f"coords_to_data")
     else:
         return None
@@ -487,7 +508,7 @@ def render_html_speed_list(date_today,
         page=1, 
         direction=None,
         speed_range=None,
-        sort='ASC',
+        sort='DESC',
         ):
 
     speed_lists, total_pages, total_count = get_data_speed_list(
@@ -645,8 +666,8 @@ def render_html_calibrate(
         messages.append({
             'status': 'message',
             'message': f"Coordinates saved! [BEGIN] x:{tx} y:{ty} and [END] x:{bx} y:{by}",
-            },
-            {
+            })
+        messages.append({
             'status': 'warn',
             'message': f"Restart the WebServer to load in the new configs",
             })
@@ -655,7 +676,7 @@ def render_html_calibrate(
 
     if pid > 0: 
         if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Starting speed tracker")
-        restart_service('start-speedcam')
+        restart_services('start-speedcam')
 
     restart_service = render_html_restart_service()
     calibrator = Template(filename='html/_calibrate.html')
@@ -673,7 +694,7 @@ def render_html_calibrate(
         restart_service=restart_service,
         )
 
-    # if pid > 0: restart_service('start-speedcam')
+    # if pid > 0: restart_services('start-speedcam')
     return html
 
 
@@ -822,7 +843,63 @@ def render_html_cron_editor(querycomponents=None):
         )
     return html
 
+def get_media_path(subpath=''):
+    # cap_time = datetime.datetime.strptime(date, DATE_FORMAT)
+    # media_path = PATH_TO_IMAGES + '/' + cap_time.strftime("%Y/%m/%d") + subpath
+    media_path = PATH_TO_IMAGES + subpath
+    media_base_path = os.path.dirname(media_path)
+    os.makedirs(media_base_path, exist_ok=True)
+    # ls -tp media/images/2021/03/05/debug | grep -v '/$' | tail -n +51 | xargs -d '\n' rm -f --
+    # stream = os.popen(f"ls -1tr {media_path} | head -n -10")
+    # output = stream.read()
+    return media_path
 
+def render_html_speed_debugger(querycomponents):
+    media_path = get_media_path(subpath='/debug')
+
+    #--- keep only 50 records
+    os.popen(f"cd {media_path} && ls -tp $PWD | grep -v '/$' | tail -n +101 | xargs rm -f" )
+
+    jpg_files = [f for f in os.listdir(media_path) if f.endswith('.jpg')]
+    jpg_files.sort(reverse=True)
+
+    #--- get two ids differentiate standard and debug mode
+    pid = is_daemon_active('speed')
+    stream = os.popen("ps aux | grep 'speed-tracker.py.*debug' | grep -v grep | awk '{print $2}'")
+    pid_debug = stream.read()
+    if pid_debug == "": pid_debug = 0
+
+
+    htmllist = Template(filename='html/_speed_debugger.html')
+    html = htmllist.render(
+        # configContent=configContent,
+        jpg_files=jpg_files,
+        media_path=media_path,
+        pid=pid,
+        pid_debug=int(pid_debug),
+        )
+    return html
+
+def render_html_debugger_get(querycomponents, self):
+
+    if 'img_lookup' in querycomponents:
+        img_lookup = querycomponents["img_lookup"][0]
+        if img_lookup == 'enable-debugger':
+            restart_services('debugger-speedcam')
+            return "debugger on"
+        elif img_lookup == 'stop-speedcam':
+            restart_services('stop-speedcam')
+            return "Speed Cam Stoped"
+        elif img_lookup == 'restart-speedcam':
+            restart_services('restart-speedcam')
+            return "Speed Cam Restarted"
+
+    media_path = get_media_path(subpath=f'/debug/{img_lookup}.jpg.log')
+        
+    with open(media_path) as f:
+        debugged = f.read()
+    self.wfile.write(bytes(debugged, "utf-8"))
+    return True;
 
 
 def stream_log(self, log=None):
@@ -860,6 +937,9 @@ def stream_log(self, log=None):
         process.terminate()
     except:
         if CONSOLE_DEBUGGER >= 4: print("[NOTICE] process.terminate() was not needed")
+
+
+
 
 
 
@@ -1048,8 +1128,9 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             speed_range = None
             cam = None
             log = None
-            sort = 'ASC'
-            metarefresh = True
+            sort = 'DESC'
+            metarefresh = False
+            page_refresh=WEB_AUTO_REFRESH
 
 
             query_string = urlparse(self.path).query
@@ -1089,8 +1170,9 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     speed_range=speed_range,
                     sort=sort,
                     )
+                metarefresh = True
             elif self.path.startswith('/restart_service'):
-                restart_service(cam)
+                restart_services(cam)
                 html = cam
             elif self.path.startswith('/status'):
                 html_body = render_html_status(
@@ -1121,22 +1203,30 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     date_end=date_end,
                     query_string=query_string,
                     )
-                metarefresh = False
             elif self.path.startswith('/calibrate'):
                 html_body = render_html_calibrate(
                     querycomponents=query_components,
                     )
-                metarefresh = False
             elif self.path.startswith('/config_editor'):
                 html_body = render_html_config_editor(
                     querycomponents=query_components,
                     )
-                metarefresh = False
             elif self.path.startswith('/cron_editor'):
                 html_body = render_html_cron_editor(
                     querycomponents=query_components,
                     )
-                metarefresh = False
+            elif self.path.startswith('/speed_debugger'):
+                html_body = render_html_speed_debugger(
+                    querycomponents=query_components,
+                    )
+                metarefresh = True
+                # page_refresh = 60
+            elif self.path.startswith('/debugger_get'):
+                html_body = render_html_debugger_get(
+                    querycomponents=query_components,
+                    self=self,
+                    )
+                return True
             else:
                 # speed list count by hr
                 html_body = render_html_overview(
@@ -1145,12 +1235,13 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                     date_end=date_end,
                     query_string=query_string,
                     )
+                metarefresh = True
 
             htmlwrapper = Template(filename='html/wrapper.html')
             html = htmlwrapper.render(
                 metarefresh=metarefresh,
                 body=html_body,
-                page_refresh=WEB_AUTO_REFRESH,
+                page_refresh=page_refresh,
                 )
 
             self.wfile.write(bytes(html, "utf-8"))

@@ -1,0 +1,131 @@
+<div class="" sylte="display=None;" id="message_display">
+    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+</div>
+
+<div class="container_nav">
+    <ul>
+        <li><a href="/speed_debugger">Refresh This Page</a></li>
+        <li>
+            <input id="enable_debugger" class="enable_debugger button_text" type="submit" 
+% if pid_debug > 0:
+    action="stop-speedcam"  name="enable_debugger" value="Disable Debugger" 
+    style="background: orange;"
+% else:
+    action="enable-debugger"  name="enable_debugger" value="Enable Debugger" 
+% endif
+    />
+        </li>
+        <li>
+            <input id="cam_stop" class="enable_debugger button_text" type="submit" action="stop-speedcam" name="enable_debugger" value="Stop Speed Cam"  ${'' if pid > 0 or pid_debug > 0 else 'style="display:none;"'} />
+        </li>
+        <li>
+            <input id="cam_restart" class="enable_debugger button_text" type="submit" action="restart-speedcam" name="enable_debugger" value="Restart with Debugger Off" />
+        </li>
+    </ul>
+</div>
+<div class="debugger_parent">
+    <div class="debugger_left">
+        <ul>
+<%
+i = 1
+%>
+            % for thejpg in jpg_files:
+            <li>
+                (${i}) ${thejpg}<br>
+                <img src="${media_path}/${thejpg}" id="${thejpg}" class="debugger">
+            </li>
+<%
+i += 1
+%>
+            % endfor
+        </ul>
+    </div>
+    <div class="debugger_right" id="debugger_right" style="display:none;">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';" style="display: inline-block;vertical-align: top;">&times;</span>
+        
+    </div>
+</div>
+<script>
+// $(".debugger").mouseenter(function(){
+$(".debugger").click(function() {
+    // $('#debugger_right').show();
+    // $('.debugger_right').css('dispaly', 'block');
+    $('#debugger_right').css('display', 'block');
+    img_lookup = $(this).attr('id')
+    img_lookup = img_lookup.replace(/\.[^/.]+$/, "")
+    $.ajax({
+        type: "GET",
+        url: "/debugger_get",
+        data: {
+            img_lookup: img_lookup,
+            // access_token: $("#access_token").val() 
+        },
+        success: function(result) {
+            console.log('ok');
+            // console.log(result);
+            // console.log("mouseenter:" + img_lookup)
+            $(".debugger_right").contents()[0].data = img_lookup + "\n\n" + result;
+        },
+        error: function(result) {
+            console.log('error');
+        }
+    });
+});
+
+
+var debug_button_clear = function() {
+    $('#enable_debugger').attr('value', 'Enable Debugger');
+    $('#enable_debugger').attr('action', 'enable-debugger');
+    $('#enable_debugger').css("background", "#2dabf9")
+}
+$(".enable_debugger").click(function(e) {
+    e.preventDefault();
+    action = $(this).attr('action');
+    console.log(action)
+    if (action == "enable-debugger") {
+        $(this).attr('value', 'Disable Debugger');
+        $(this).css("background", "orange");
+        $(this).attr('action', 'stop-speedcam');
+        message = 'Speed Cam with debugger is now on'
+        message_class = 'warn'
+        $('#cam_stop').show()
+    } 
+    else if (action == "stop-speedcam") {
+        message = 'Speed Cam stopped'
+        message_class = 'alert'
+        debug_button_clear()
+
+$('#cam_stop').hide()
+    } else if (action == "restart-speedcam") {
+        message = 'Speed Cam restarted without debugger'
+        message_class = 'message'
+        debug_button_clear()
+    }
+            // $("#message_display").attr('class', message_class);
+            // $('#message_display').show();
+            // $("#message_display").contents()[0].data = message;
+
+    $.ajax({
+        type: "GET",
+        url: "/debugger_get",
+        data: { 
+            img_lookup: action,
+            // access_token: $("#access_token").val() 
+        },
+        success: function(result) {
+            console.log('ok');
+            $("html, body").animate({ scrollTop: 0 }, "fast");
+            $("#message_display").attr('class', message_class);
+            $("#message_display").contents()[0].data = message;
+            $('#message_display').show();
+        },
+        error: function(result) {
+            console.log('error');
+            $("html, body").animate({ scrollTop: 0 }, "fast");
+            $("#message_display").attr('class', 'error');
+            $('#message_display').show();
+            $("#message_display").contents()[0].data = 'Speed Cam had issues restarting';
+        }
+    });
+});
+</script>

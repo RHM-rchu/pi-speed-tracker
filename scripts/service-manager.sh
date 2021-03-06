@@ -68,14 +68,15 @@ EOT
 }
 app_start() {
     local APP=$1
+    local PARM=$2
     # no app specified do both
     # only if pid greater than 0 ignore
     if [[ -z "$APP" ]]; then 
-        [ "${pid_speed:-0}" -gt "0" ] || python $APP_SPEED --show_image=off &
+        [ "${pid_speed:-0}" -gt "0" ] || python $APP_SPEED --show_image=${PARM:-off} &
         [ "${pid_web:-0}" -gt "0" ] || python $APP_WEB &
     else
         if [[ "${APP}" == "${APP_SPEED}" ]]; then
-            [ "${pid_speed:-0}" -gt "0" ] || python $APP --show_image=off &
+            [ "${pid_speed:-0}" -gt "0" ] || python $APP --show_image=${PARM:-off} &
         elif [[ "${APP}" == "${APP_WEB}" ]]; then
             [ "${pid_web:-0}" -gt "0" ] || python $APP &
         fi
@@ -103,7 +104,7 @@ app_restart() {
     app_stop $APP
     echo "Pausing for 2 sec to let system catch up"
     sleep 1
-    app_start $APP
+    app_start $APP ""
 }
 app_status_pid() {
     local theapp=$1
@@ -168,6 +169,8 @@ app_status
 #---------------------------- execute
 if [[ "$ACTION" = "start" ]]; then
     app_start "${FILEVARMAP[$APP]}"
+elif [[ "$ACTION" = "start-debug" ]]; then
+    app_start "${FILEVARMAP[$APP]}" "debug"
 elif [[ "$ACTION" = "stop"  ]]; then
     app_stop "${FILEVARMAP[$APP]}"
 elif [[ "$ACTION" = "restart"  ]]; then

@@ -44,6 +44,10 @@ nav_links = {
         'name':'Scheduler',
         'class':'cal',
     },
+    '/speed_debugger': {
+        'name':'Debugger',
+        'class':'bug',
+    },
     '/log-view': {
         'name':'Real-Time Logs',
         'class':'log',
@@ -132,7 +136,7 @@ $("#restart_speedcam").click(function(e) {
     e.preventDefault();
     $.ajax({
         type: "GET",
-        url: "/restart_cam",
+        url: "/restart_service",
         data: { 
             cam: 'restart-speedcam',
             // access_token: $("#access_token").val() 

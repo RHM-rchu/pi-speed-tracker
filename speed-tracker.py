@@ -8,7 +8,7 @@ import math
 import cv2
 import numpy as np
 import argparse
-import os, sys
+import os, sys, re, subprocess
 import sqlite3
 #-----------------------------------------
 # shared configs and functions
@@ -51,7 +51,7 @@ ap.add_argument("-lrx", "--lower_right_x", required=False,
     help="lower right x coord")
 ap.add_argument("-lry", "--lower_right_y", required=False,
     help="lower right y coord")
-ap.add_argument("-s", "--show_image", required=True, default="off",
+ap.add_argument("-s", "--show_image", required=False, default="off",
     help="Show Video Player")
 args = vars(ap.parse_args())
 
@@ -87,13 +87,12 @@ def offset_capture_by_direction():
 if 'CROP_OffSET' in globals():
     CAPTURE_OFFSETS = offset_capture_by_direction()
 
-# calculate the the width of the image at the distance specified
-#frame_width_ft = 2*(math.tan(math.radians(FOV*0.5))*DISTANCE)
-l2r_frame_width_ft = 2*(math.tan(math.radians(FOV*FIELD_OF_VIEW))*L2R_DISTANCE)
-r2l_frame_width_ft = 2*(math.tan(math.radians(FOV*FIELD_OF_VIEW))*R2L_DISTANCE)
+#-----------------------------------------
+# ft to pixels
+l2r_frame_width_ft = 2*(math.tan(math.radians(FOV*0.5))*L2R_DISTANCE)
+r2l_frame_width_ft = 2*(math.tan(math.radians(FOV*0.5))*R2L_DISTANCE)
 l2r_ftperpixel = l2r_frame_width_ft / float(RESOLUTION[0])
-r2l_ftperpixel = r2l_frame_width_ft / float(RESOLUTION[0])
-
+r2l_ftperpixel  = r2l_frame_width_ft / float(RESOLUTION[0])
 #-----------------------------------------
 
 
@@ -191,6 +190,17 @@ def get_threshold(light):
     if CONSOLE_DEBUGGER >= 3: print("[INFO] Threahold: %s" %  threshold)
     return threshold
 
+def store_image_path(cap_time='', sub_dir=''):
+    imageFilename = cap_time.strftime("%Y%m%d_%H%M%S") + ".jpg"
+    if sub_dir != '':
+        media_path = PATH_TO_IMAGES + sub_dir
+        imageFilename_full = media_path + "/" + "car_at_" + imageFilename
+    else:
+        media_path = PATH_TO_IMAGES + '/' + cap_time.strftime("%Y/%m/%d")
+        imageFilename_full = media_path + "/" + "car_at_" + imageFilename
+    os.makedirs(media_path, exist_ok=True)
+    return imageFilename_full
+
 def store_image(cap_time, image, mean_speed, direction):
     if 'CAPTURE_OFFSETS' in globals():
         if direction == LEFT_TO_RIGHT:
@@ -211,10 +221,7 @@ def store_image(cap_time, image, mean_speed, direction):
     spd_fnt_sz = 1
     txt_date = cap_time.strftime("%A %d %B %Y %I:%M:%S%p")
     txt_speed = "%.0f mph" % mean_speed
-    media_path = PATH_TO_IMAGES + '/' + cap_time.strftime("%Y/%m/%d")
-    imageFilename = cap_time.strftime("%Y%m%d_%H%M%S") + ".jpg"
-    imageFilename_full = media_path + "/" + "car_at_" + cap_time.strftime("%Y%m%d_%H%M%S") + ".jpg"
-    os.makedirs(media_path, exist_ok=True)
+    imageFilename_full = store_image_path(cap_time=cap_time)
 
     if CONSOLE_DEBUGGER >= 2: print("[SAVING] Image:  %s" % imageFilename_full)
 
@@ -328,7 +335,6 @@ def main():
     setup_complete = False
     tracking = False
     text_on_image = 'No cars'
-    broker_address = 'emonpi'
     save_image = False
     t1 = 0.0  #timer
     t2 = 0.0  #timer
@@ -337,19 +343,15 @@ def main():
     adjusted_min_area = MIN_AREA
     first_pass = True
          
-    monitored_width = lower_right_x - upper_left_x
-    monitored_height = lower_right_y - upper_left_y
-
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING] Tracking area:")
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   upper_left_x {upper_left_x}")
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   upper_left_y {upper_left_y}")
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   lower_right_x {lower_right_x}")
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   lower_right_y {lower_right_y}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   monitored_width {monitored_width}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   monitored_height {monitored_height}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   monitored_area {monitored_width * monitored_height}")
-    if CONSOLE_DEBUGGER >= 2: print("[LOADING]   %s Image width in feet %.0f at %0f from camera" % (LEFT_TO_RIGHT, l2r_frame_width_ft, L2R_DISTANCE))
-    if CONSOLE_DEBUGGER >= 2: print("[LOADING]   %s Image width in feet %3.0f at %3.0f from camera" % (RIGHT_TO_LEFT, r2l_frame_width_ft, R2L_DISTANCE))
+    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   TARGET_WIDTH {TARGET_WIDTH}")
+    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   TARGET_HEIGHT {TARGET_HEIGHT}")
+    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   target_area {TARGET_WIDTH * TARGET_HEIGHT}")
+    if CONSOLE_DEBUGGER >= 2: print("[LOADING]   L2R %.3f ft/px & R2L %.3f ft/px " % (l2r_ftperpixel, r2l_ftperpixel))
 
     # initialise the camera. 
     # Adjust vflip and hflip to reflect your camera's orientation
@@ -369,6 +371,8 @@ def main():
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         # grab the raw NumPy array representing the image 
         image = frame.array
+        imageShow = image.copy()
+
 
     # load_video="../test/media/vid/Sequence1.mp4"
     # cap = cv2.VideoCapture(load_video)
@@ -376,7 +380,9 @@ def main():
     #     _, image = cap.read()
 
         # crop area defined by [y1:y2,x1:x2]
-        gray = image[upper_left_y:lower_right_y,upper_left_x:lower_right_x]
+        imageShow = imageShow[upper_left_y:lower_right_y,upper_left_x:lower_right_x]
+        gray = imageShow.copy()
+        # gray = image[upper_left_y:lower_right_y,upper_left_x:lower_right_x]
         # capture colour for later when measuring light levels
         hsv = cv2.cvtColor(gray, cv2.COLOR_BGR2HSV)
         # convert the frame to grayscale, and blur it
@@ -387,7 +393,7 @@ def main():
         if base_image is None:
             base_image = gray.copy().astype("float")
             rawCapture.truncate(0)
-            if SHOW_IMAGE == 'on': cv2.imshow("Speed Camera", image)
+        #     if SHOW_IMAGE == 'on': cv2.imshow("Speed Camera", image)
       
 
         if lightlevel == 0:   #First pass through only
@@ -424,12 +430,23 @@ def main():
             if (found_area > adjusted_min_area) and (found_area > biggest_area):  
                 biggest_area = found_area
                 motion_found = True
-                x = x1
-                y = y1
-                h = h1
-                w = w1
+                x, y, h, w = x1, y1, h1, w1
                 #record the timestamp at the point in code where motion found
                 timestamp = datetime.datetime.now()
+
+        if SHOW_IMAGE == 'on': 
+            if "x" in locals(): cv2.rectangle(imageShow, (x,y), (x+w,y+h), (255, 0, 0), 2)
+            # # draw the text and timestamp on the frame
+            # cv2.putText(image, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
+            #     (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 1)
+            # imageShow = overlay_transparent(imageShow, gray, 0, 0, 95)
+            # if SHOW_BOUNDS:
+            #     #define the monitored area right and left boundary
+            #     cv2.line(image,(upper_left_x,upper_left_y),(upper_left_x,lower_right_y),(0, 255, 0))
+            #     cv2.line(image,(lower_right_x,upper_left_y),(lower_right_x,lower_right_y),(0, 255, 0))
+            cv2.imshow("Speed Camera", imageShow)
+
+     
 
         if motion_found:
             if state == WAITING:
@@ -453,6 +470,10 @@ def main():
 
                 if CONSOLE_DEBUGGER >= 4: print(f"[NOTICE] ~~~ Started: {timestamp} ~~~")
                 if CONSOLE_DEBUGGER >= 1: print("[TRACKING] x-chg    Secs   MPH  x-pos width  BA    Direction  Count time")
+
+
+                if SHOW_IMAGE == 'debug': 
+                    backtorgb = cv2.cvtColor(thresh,cv2.COLOR_GRAY2RGB)
 
                 if (car_gap<TOO_CLOSE):   
                     state = WAITING
@@ -491,11 +512,19 @@ def main():
                             x=1  #Force save
                         else:
                             direction = LEFT_TO_RIGHT  #Reset correct direction
-                            x=monitored_width + MIN_SAVE_BUFFER  #Force save
+                            x=TARGET_WIDTH + MIN_SAVE_BUFFER  #Force save
                     else:
                         if CONSOLE_DEBUGGER >= 1: print("[TRACKING] %4d  %7.2f  %3.0f  %4d  %5d %6d  %3s  %2d   %s" %
                             (abs_chg, secs, mph, x, w, biggest_area, direction, counter, timestamp.strftime("%H:%M:%S-%f")))
-                    
+
+                        if SHOW_IMAGE == 'debug': 
+                            if "x" in locals(): 
+                                color = list(np.random.random(size=3) * 256)
+                                cv2.rectangle(backtorgb, (x,y), (x+w,y+h), color, 2)
+                                cv2.circle(backtorgb, (x+int(w/2), y+int(h/2)), 5, color, -3)
+                                cv2.putText(backtorgb,f'{x}',(x,y-4), cv2.FONT_HERSHEY_SIMPLEX, .3,(0,255,0),1,cv2.LINE_AA)
+                            # cv2.imshow("frameDelta", backtorgb)
+
                     real_y = upper_left_y + y
                     real_x = upper_left_x + x
                   
@@ -503,7 +532,7 @@ def main():
                     # is front of object outside the monitired boundary? Then write date, time and speed on image
                     # and save it 
                     if ((x <= adjusted_save_buffer) and (direction == RIGHT_TO_LEFT)) \
-                            or ((x+w >= monitored_width - adjusted_save_buffer) \
+                            or ((x+w >= TARGET_WIDTH - adjusted_save_buffer) \
                             and (direction == LEFT_TO_RIGHT)):
                         
                         #you need at least 2 data points to calculate a mean and we're deleting one on line below
@@ -526,7 +555,32 @@ def main():
                         if SAVE_CSV and mean_speed > MIN_SPEED_SAVE and mean_speed < MAX_SPEED_SAVE:
                             if lightlevel > 1: imageFilename_full = store_image(cap_time, image, mean_speed, direction)
                             store_traffic_data(cap_time, mean_speed, direction, counter, sd, imageFilename_full)
-                        
+
+                        if SHOW_IMAGE == 'debug': 
+                            cap_time = datetime.datetime.now() 
+                            imageFilename_full = store_image_path(cap_time, sub_dir='/debug')
+                            # imageFilename_full = PATH_TO_IMAGES + '/debug'
+                            if CONSOLE_DEBUGGER >= 2: print("[SAVING] DEBUG Image:  %s" % imageFilename_full)
+                            if direction == LEFT_TO_RIGHT:
+                                arrrow_coords = (15, 15), (60, 15)
+                            else:
+                                arrrow_coords = (60, 15), (15, 15)
+
+                            cv2.putText(backtorgb, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
+                                (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 1)
+                            cv2.arrowedLine(backtorgb, arrrow_coords[0], arrrow_coords[1], (255, 0, 0), 3, cv2.LINE_AA, 0, 0.3)
+                            cv2.imwrite(imageFilename_full, backtorgb)
+                            del backtorgb
+                            last_d=re.findall('.*/(car_at_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2}).*)', imageFilename_full)[0]
+                            # stream = os.popen(f"sed '/.*{initial_time}/,/{last_d[0]}/!d;//d' {LOG_FILE}")
+                            # output = stream.read()
+                            # print(fxxxxxxxxx {output} xxxxxxxxx")
+                            with open(f'{imageFilename_full}.log', 'w') as f:
+                                brack_o = '{'
+                                brack_c = '}'
+                                process = subprocess.Popen(['sed', '-n',  f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}', f"{LOG_FILE}"], stdout=f)
+                                # process = subprocess.Popen(['sed',  f"/.*{initial_time}/,/{last_d[0]}/!d;//d", f"{LOG_FILE}"], stdout=f)
+
                         counter = 0
                         state = SAVING #debug                    
                     # if the object hasn't reached the end of the monitored area, just remember the speed 
@@ -559,6 +613,9 @@ def main():
                     imageFilename_full = store_image(cap_time, image, mean_speed, direction)
                     store_traffic_data( cap_time, mean_speed, direction, counter, sd, imageFilename_full)
 
+                if SHOW_IMAGE == 'debug': del backtorgb
+
+
             if state != WAITING:
                 state = WAITING
                 direction = UNKNOWN
@@ -568,24 +625,7 @@ def main():
                 
         # only update image and wait for a keypress when waiting for a car
         # This is required since waitkey slows processing.
-        if (state == WAITING):    
-     
-            # draw the text and timestamp on the frame
-            cv2.putText(image, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
-                (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 1)
-            cv2.putText(image, "Road Status: {}".format(text_on_image), (10, 20),
-                cv2.FONT_HERSHEY_SIMPLEX,0.35, (0, 0, 255), 1)
-         
-            # show the frame and check for a keypress
-            if SHOW_IMAGE == 'on':
-                # prompt_on_image(prompt, image)
-                image = overlay_transparent(image, thresh, upper_left_x, upper_left_y, 95)
-                if SHOW_BOUNDS:
-                    #define the monitored area right and left boundary
-                    cv2.line(image,(upper_left_x,upper_left_y),(upper_left_x,lower_right_y),(0, 255, 0))
-                    cv2.line(image,(lower_right_x,upper_left_y),(lower_right_x,lower_right_y),(0, 255, 0))
-                cv2.imshow("Speed Camera", image)
-                
+        if (state == WAITING):                    
             # Adjust the base_image as lighting changes through the day
             if state == WAITING:
                 last_x = 0
@@ -604,6 +644,9 @@ def main():
                         base_image = None
                     last_lightlevel = lightlevel
             state=WAITING
+
+            if "x" in locals():
+                del x,w,y,h
 
             # if the `q` key is pressed, break from the loop and terminate processing
             # if running headless give a preview image with hotzone to calibrate blind
