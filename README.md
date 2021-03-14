@@ -15,12 +15,12 @@ Light weight Python based traffic speed tracker using the Raspberry Pi. Tracking
 
 
 
-![Sample web page](html/assets/sample_web_nav.png]?raw=true "Sample web page")
+![Sample web page](html/assets/sample_web_nav.png?raw=true "Sample web page")
 
 Heres some of the features of the Web Control panels:
 - Graphs by Hours, Times, and day of week, all searchable with custom plots points.
 
-![Sample web page](html/assets/sample_searchable_graphs.png]?raw=true "Sample web page")
+![Sample web page](html/assets/sample_searchable_graphs.png?raw=true "Sample web page")
 
 - Cam status give a quick view of the most recent 100 (Default but can be change) photos and let's you know if you speed cam is running. Note: all speed tracked are stored as photos, these can be viewed in the graph section section.
 
