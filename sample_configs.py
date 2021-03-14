@@ -1,7 +1,8 @@
 #-----------------------------------------
 # CONFIGS
 #-----------------------------------------
-# define some constants
+VIDEO_SRC = 0                           #<---- 0 is usually the webcam, unless you have multiple cams then you have to chose
+# VIDEO_SRC = "../test/media/vid/Sequence1.mp4"
 L2R_DISTANCE = 67                       #<---- in feet measure cam lens to the center point of lane going left to right
 R2L_DISTANCE = 76                       #<---- in feet measure cam lens to the center point of lane going left to right
 CROP_OffSET = 80                        #<---- sift the snapshot over by 'n'px left or right on final capture to mitigate cropping the target

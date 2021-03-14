@@ -42,35 +42,12 @@ def piimage():
 
     # if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Capture Image")
     image = rawCapture.array
-    print(image.shape)
 
-    # txt_date = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
-    # cv2.putText(image, txt_date,
-    #     (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
-
-    if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Saving Image")
-    cv2.imwrite(imgPath, image)
+    rawCapture.truncate(0)
     camera.close()
-
     return image
 
-    # # open the camera, grab a frame, and release the camera
-    # camera = PiCamera()
-    # camera.resolution = RESOLUTION
-    # camera.framerate = FPS
-    # camera.vflip = False
-    # camera.hflip = False
-    # rawCapture = PiRGBArray(camera, size=camera.resolution)
-    # time.sleep(0.8)
-    # for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    #     image = frame.array
-    #     rawCapture.truncate(0)
-    #     print(image.shape)
 
-    #     camera.close()
-    #     return image
-    #     break
-    # return None
 
 def insert_text_on_img(image, coords):
     # calculate the four corners of our region of interest
@@ -141,8 +118,8 @@ def click_and_crop(event, x, y, flag, image):
 
 def main_still_img():
 # image_source = "media/images/calibrate.jpg"
-    # image = get_image(0)
-    image = piimage()
+    image = get_image(0)
+    # image = piimage()
     if image is not None:
         # show the captured image in a window
         # cv2.namedWindow('CapturedImage', cv2.WINDOW_NORMAL)

@@ -1,8 +1,6 @@
 #!/usr/bin/env ptython3
 
 # import the necessary packages
-from picamera.array import PiRGBArray
-from picamera import PiCamera
 import time, datetime
 import math
 import cv2
@@ -353,31 +351,17 @@ def main():
     if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   target_area {TARGET_WIDTH * TARGET_HEIGHT}")
     if CONSOLE_DEBUGGER >= 2: print("[LOADING]   L2R %.3f ft/px & R2L %.3f ft/px " % (l2r_ftperpixel, r2l_ftperpixel))
 
-    # initialise the camera. 
-    # Adjust vflip and hflip to reflect your camera's orientation
-    camera = PiCamera()
-    camera.resolution = RESOLUTION
-    camera.framerate = FPS
-    camera.vflip = False
-    camera.hflip = False
 
-    rawCapture = PiRGBArray(camera, size=camera.resolution)
-    # allow the camera to warm up
-    time.sleep(1)
-
-    # capture frames from the camera (using capture_continuous.
-    #   This keeps the picamera in capture mode - it doesn't need
-    #   to prep for each frame's capture.
-    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-        # grab the raw NumPy array representing the image 
-        image = frame.array
-        imageShow = image.copy()
-
-
+    #---- VideoCapture: TEXT
     # load_video="../test/media/vid/Sequence1.mp4"
     # cap = cv2.VideoCapture(load_video)
-    # while(cap.isOpened()):
-    #     _, image = cap.read()
+    cap = cv2.VideoCapture(VIDEO_SRC)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH,RESOLUTION[0])
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT,RESOLUTION[1])
+    cap.set(cv2.CAP_PROP_FPS, FPS)
+    while(cap.isOpened()):
+        _, image = cap.read()
+        imageShow = image.copy()
 
         # crop area defined by [y1:y2,x1:x2]
         imageShow = imageShow[upper_left_y:lower_right_y,upper_left_x:lower_right_x]
@@ -392,7 +376,6 @@ def main():
         # if the base image has not been defined, initialize it
         if base_image is None:
             base_image = gray.copy().astype("float")
-            rawCapture.truncate(0)
         #     if SHOW_IMAGE == 'on': cv2.imshow("Speed Camera", image)
       
 
@@ -486,7 +469,6 @@ def main():
                     text_on_image = 'No Car Detected'
                     motion_found = False
                     biggest_area = 0
-                    rawCapture.truncate(0)
                     base_image = None
                     if CONSOLE_DEBUGGER >= 4: print("[NOTICE] ~~~ Resetting ~~~")
                     continue             
@@ -654,13 +636,14 @@ def main():
                 calibration_image(image)
                 first_pass = False
             elif cv2.waitKey(1) & 0xFF == ord('q'):
+                #---- VideoCapture: TEXT
+                cap.release()
                 calibration_image(image)
                 print("[EXIT] Quit at %s" % datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"))
                 break
 
              
         # clear the stream in preparation for the next frame
-        rawCapture.truncate(0)
     # cleanup the camera and close any open windows
     cv2.destroyAllWindows()
 
