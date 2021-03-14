@@ -560,7 +560,14 @@ def main():
                             with open(f'{imageFilename_full}.log', 'w') as f:
                                 brack_o = '{'
                                 brack_c = '}'
-                                process = subprocess.Popen(['sed', '-n',  f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}', f"{LOG_FILE}"], stdout=f)
+                                print(f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}')
+                                process = subprocess.Popen(['sed', '-n',  f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}', f"{LOG_FILE}"], stdout=subprocess.PIPE)
+                                process.wait()
+                                resultOfSubProcess, errorsOfSubProcess = process.communicate()
+                                f.write(resultOfSubProcess.decode("utf-8"))
+                                # process = subprocess.check_output(['sed', '-n',  f"/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}", f"{LOG_FILE}"])
+                                # f.write( process.decode("utf-8") )
+                                
                                 # process = subprocess.Popen(['sed',  f"/.*{initial_time}/,/{last_d[0]}/!d;//d", f"{LOG_FILE}"], stdout=f)
 
                         counter = 0
