@@ -1,6 +1,6 @@
 # A Work in progress...
 
-## v0.7.0
+## v0.7.1
 
 ## Credits
 
@@ -85,6 +85,7 @@ media
 
 ### Viewing Individual Records
 - Query and cycle through each record
+
 ![Query and view records](html/assets/sample_query-review.png?raw=true "Query and view records")
 
 ### Monitor Cam status 
@@ -96,6 +97,7 @@ media
 ### Web monitoring and live log view
 
 #### track what the app is logging in real time as cars go by
+
 ![Speed Tracking Logs](html/assets/sample_log_speed.png?raw=true "Speed Tracking Logs")
 
 #### track what the app is logging in real time as cars go by
@@ -103,6 +105,7 @@ media
 
 
 #### Check on Server resource and resource usage, with the `top` command in a web browser
+
 ![Server Status](html/assets/sample_log_top.png?raw=true "Server Status")
 
 ## Requirements
