@@ -24,27 +24,27 @@ Heres some of the features of the Web Control panels:
 
 - Cam status give a quick view of the most recent 100 (Default but can be change) photos and let's you know if you speed cam is running. Note: all speed tracked are stored as photos, these can be viewed in the graph section section.
 
-![Sample Cam Status](html/assets/sample_status.png]?raw=true "Sample Cam Status")
+![Sample Cam Status](html/assets/sample_status.png?raw=true "Sample Cam Status")
 
 - Calibrating your camera. You can take quick snapshot of what you camera sees in the control panel. This allows you to focus and point the camera at the part of the road you want. You also have the ability to draw a box on the region of the road you want to monitor here.
 
-![Sample select area of road](html/assets/sample_target_area.png]?raw=true "Sample select area of road")
+![Sample select area of road](html/assets/sample_target_area.png?raw=true "Sample select area of road")
 
 - Editing configurations, is all in one file and should be pretty self explanatory, one you open the editor.
 
-![Sample Cam Status](html/assets/sample_configuration.png]?raw=true "Sample Cam Status")
+![Sample Cam Status](html/assets/sample_configuration.png?raw=true "Sample Cam Status")
 
 - Scheduling when the camera turns off and on can be done here as well.
 
-![Sample Cam Status](html/assets/sample_scheduler.png]?raw=true "Sample Cam Status")
+![Sample Cam Status](html/assets/sample_scheduler.png?raw=true "Sample Cam Status")
 
 - There is a debugger to help, to tell you what the AI see, in the as images. This can help determine if you have the camera physical location, need to configure the threshold, or redraw the a better section of road to track.
 
-![Sample Cam Status](html/assets/sample_debugger.png]?raw=true "Sample Cam Status")
+![Sample Cam Status](html/assets/sample_debugger.png?raw=true "Sample Cam Status")
 
 - There are real time logs to for the webserver, speed camera, and server (computer) load & resources.
 
-![Sample Cam Status](html/assets/sample_logger.png]?raw=true "Sample Cam Status")
+![Sample Cam Status](html/assets/sample_logger.png?raw=true "Sample Cam Status")
 
 
 ## Features
