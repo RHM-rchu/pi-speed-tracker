@@ -205,12 +205,12 @@ r2l = 0
                         ${l2r},
                     ],
                     borderColor: [
-                        'rgba(153, 102, 255, 1)',
                         'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
                     ],
                     backgroundColor: [
-                        'rgba(153, 102, 255, 0.2)',
                         'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
                     ],
                 }],
                 labels: [
@@ -265,7 +265,7 @@ r2l = 0
 <table class="paleBlueRows list">
     <thead>
         <tr>
-            <th colspan="5">
+            <th colspan="6">
 % for i in range(0, total_pages):
     <%
         i+=1
@@ -278,7 +278,7 @@ r2l = 0
     </thead>
     <thead>
         <tr>
-            <th colspan="5">Speed limit ${speed_limit}mph</th>
+            <th colspan="6">Speed limit ${speed_limit}mph</th>
         </tr>
     </thead>
     <thead>
@@ -288,15 +288,17 @@ r2l = 0
             <th>Speed</th>
             <th nowrap><i class="arrow left"></i><i class="arrow right"></i></th>
             <th>SD</th>
+            <th>count</th>
         </tr>
     </thead>
     % for row in speed_lists:
     <tr class="horizontal">
-        <td class="firstcol"><a data-id="/${row['image_path']}" class="showModal" id="${row['id']}" alt="${row['mean_speed']}mph - ${row['direction']} - ${row['date_full']}"><img src="/html/assets/img.png"></a></td>
+        <td class="firstcol"><a data-id="/${row['image_path']}" class="showModal" id="${row['id']}" alt="${row['mean_speed']}mph - ${row['direction']} - ${row['date_full']} - (${row['counter']})"><img src="/html/assets/img.png"></a></td>
         <td>${row['date_full']}</td>
         <td>${row['mean_speed']}</td>
         <td>${row['direction']}</td>
         <td>${row['sd']}</td>
+        <td>${row['counter']}</td>
     </tr>
     % endfor
 </table>

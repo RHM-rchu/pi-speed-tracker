@@ -11,6 +11,8 @@ MIN_SPEED_SAVE = 1                      #<---- enter the minimum speed for publi
 MAX_SPEED_SAVE = 90                     #<---- enter the maximum speed for publishing to MQTT broker and saving to CSV
 SPEED_LIMIT = 40                        #<---- MPH speed limit
 FIELD_OF_VIEW = 0.665
+INGNORE_SD_GT = 20
+INGNORE_CNT_LT = 5
 
 THRESHOLD = 25                          #<---- adjust for accuracy, higher the number the more picky
 MIN_AREA = 175                          #<---- heightxwidth pixel count, ignore if below this count

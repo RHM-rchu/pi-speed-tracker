@@ -768,6 +768,9 @@ div.debugger_right {
     white-space: pre;
     padding: 20px;
     background-color:orange;
+    max-height: 450px;
+    overflow-y: scroll;
+
     /*visibility: hidden;*/
 
 

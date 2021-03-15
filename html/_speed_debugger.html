@@ -51,8 +51,8 @@ $(".debugger").click(function() {
     // $('#debugger_right').show();
     // $('.debugger_right').css('dispaly', 'block');
     $('#debugger_right').css('display', 'block');
-    img_lookup = $(this).attr('id')
-    img_lookup = img_lookup.replace(/\.[^/.]+$/, "")
+    img_lookup_orig = $(this).attr('id')
+    img_lookup = img_lookup_orig.replace(/\.[^/.]+$/, "")
     $.ajax({
         type: "GET",
         url: "/debugger_get",
@@ -64,7 +64,18 @@ $(".debugger").click(function() {
             console.log('ok');
             // console.log(result);
             // console.log("mouseenter:" + img_lookup)
-            $(".debugger_right").contents()[0].data = img_lookup + "\n\n" + result;
+            let pathParts = 'car_at_20210315_130052'.match(/_([0-9]{4})([0-9]{2})([0-9]{2})_/) 
+            $(".debugger_right").html(
+                img_lookup + "\n\n" 
+                + '<img src="media/images/'
+                + pathParts[1]
+                + '/' + pathParts[2]
+                + '/' + pathParts[3]
+                + '/' + img_lookup_orig
+                + '">\n\n'
+                + result
+                );
+            // $(".debugger_right").contents()[0].data = img_lookup + "\n\n" + result;
         },
         error: function(result) {
             console.log('error');

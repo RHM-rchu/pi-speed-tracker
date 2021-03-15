@@ -21,7 +21,7 @@ CONFIG_FILE='_configs.py'
 COORD_FILE='_coords.py'
 THEUSER = os.getlogin()
 CRONFILE = 'tmp_crontab.txt'
-
+SQL_SELECT_APPLY_ALL = f" and sd<={INGNORE_SD_GT} and counter>{INGNORE_CNT_LT} "
 # generate a config file if not exists
 if os.path.isfile(CONFIG_FILE) == False:
     os.system(f'cp sample_configs.py {CONFIG_FILE}')
@@ -67,7 +67,7 @@ def get_data_speed_matrix(date_begin, date_end):
     dateend = date_end.replace("-","")
 
     result = db_select_record(f'''
-        SELECT mean_speed, hour from {DB_TABLE} WHERE date BETWEEN '{datebegin}' and '{dateend}'
+        SELECT mean_speed, hour from {DB_TABLE} WHERE date BETWEEN '{datebegin}' and '{dateend}' {SQL_SELECT_APPLY_ALL}
         ''')
 
     if result:
@@ -105,7 +105,7 @@ def get_data_day_of_week(date_begin, date_end):
     dateend = date_end.replace("-","")
 
     result = db_select_record(f'''
-        SELECT mean_speed, date from {DB_TABLE} WHERE date BETWEEN '{datebegin}' and '{dateend}'
+        SELECT mean_speed, date from {DB_TABLE} WHERE date BETWEEN '{datebegin}' and '{dateend}' {SQL_SELECT_APPLY_ALL}
         ''')
 
     if result:
@@ -175,14 +175,15 @@ def get_data_speed_list(
 
     result = db_select_record(f'''SELECT count(date) as total 
         from {DB_TABLE}
-        WHERE date BETWEEN '{datebegin}' and '{dateend}'  {sql_direction}  {sql_speed_range};''')
+        WHERE date BETWEEN '{datebegin}' and '{dateend}'  {sql_direction}  {sql_speed_range}  {SQL_SELECT_APPLY_ALL};''')
+    print("-------> " + SQL_SELECT_APPLY_ALL)
     total = int(result[0]['total'])
     total_page = int(total/maxPerPage)  + (total % maxPerPage > 0)
 
     result = db_select_record(f'''SELECT id, date, hour, minute, round(mean_speed, 2) as mean_speed, 
         direction, image_path, round(sd, 0) as sd, counter
         from {DB_TABLE} 
-        WHERE date BETWEEN '{datebegin}' and '{dateend}' {sql_direction} {sql_speed_range}
+        WHERE date BETWEEN '{datebegin}' and '{dateend}' {sql_direction} {sql_speed_range} {SQL_SELECT_APPLY_ALL}
         {order_by}
         LIMIT {limit}''')
  
@@ -192,10 +193,10 @@ def get_data_server_status(date_today, web_statuspage_limit=10):
     date_today = date_today.replace("-","")
     result = db_select_record(f'''SELECT count(date) as total 
         from {DB_TABLE}
-        WHERE date BETWEEN '{date_today}' and '{date_today}';''')
+        WHERE date BETWEEN '{date_today}' and '{date_today}' {SQL_SELECT_APPLY_ALL};''') 
     total = int(result[0]['total'])
 
-    result = db_select_record(f'''select * from {DB_TABLE} order by id DESC limit {web_statuspage_limit}''')
+    result = db_select_record(f'''select * from {DB_TABLE} WHERE  sd<={INGNORE_SD_GT} and counter>{INGNORE_CNT_LT} order by id DESC limit {web_statuspage_limit}''')
  
     return result, total
 
@@ -240,23 +241,6 @@ def convert_list_to_int(thelist):
     numbers  = [ int(x) for x in thelist ]
     return numbers
 
-
-def temp_change_primarykeys():
-    local_table = "speedTracker"
-    # milliseconds_since_epoch = datetime.datetime.now().timestamp() * 1000
-    # print(f"---->{milliseconds_since_epoch}")
-    result = db_select_record(f'''SELECT idx from {local_table}''')
-    for speed in result:
-        if '-' in speed['idx']:
-            idx = re.sub(r'^([0-9]{8})-([0-9]{6})([0-9]{1})\.(.*)', r'\1-\2.\3\4', speed['idx'])
-            datetimeobject = datetime.datetime.strptime(idx, '%Y%m%d-%H%M%S.%f')
-            datetime_fmt = datetimeobject.strftime('%Y%m%d-%H%M%S.%f')
-            epoch = datetime.datetime.strptime(datetime_fmt, '%Y%m%d-%H%M%S.%f').timestamp() * 1000
-            sql = f'''UPDATE {local_table} SET idx ='{epoch}' WHERE idx='{speed['idx']}';'''
-            db_update_record(sql)
-        elif '-' not in speed['idx']:
-            s = float(speed['idx']) / 1000.0
-            dt = datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
 
 def convert_millisec_2_time(epoch, fmt='%A %d %B %Y %I:%M:%S%p'):
     epoch = int(float(epoch))
@@ -858,10 +842,11 @@ def render_html_speed_debugger(querycomponents):
     media_path = get_media_path(subpath='/debug')
 
     #--- keep only 50 records
-    os.popen(f"cd {media_path} && ls -tp $PWD | grep -v '/$' | tail -n +101 | xargs rm -f" )
-
+    keepOnly = 50
+    os.popen(f"cd {media_path} && ls -tp $PWD | grep -v '/$' | tail -n +{keepOnly*2 + 1} | xargs rm -f" )
     jpg_files = [f for f in os.listdir(media_path) if f.endswith('.jpg')]
     jpg_files.sort(reverse=True)
+    jpg_files=jpg_files[:keepOnly]
 
     #--- get two ids differentiate standard and debug mode
     pid = is_daemon_active('speed')

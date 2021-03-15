@@ -37,7 +37,7 @@ else:
 cvGreen = (0, 255, 0)
 cvBlack = (0, 0, 0)
 cvRed = (0, 0, 255)
-
+DBG = []
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -156,8 +156,8 @@ def calibration_image(image):
     image = cv2.circle(image, (upper_left_x, upper_left_y), 8, cvGreen, -3)
     image = cv2.circle(image, (lower_right_x,lower_right_y), 8, cvGreen, -3)
 
-    calibration_image_path = ("%s/calibrate.jpg" % PATH_TO_IMAGES)
-    if CONSOLE_DEBUGGER >= 3: print("[INFO] Creating calibration img: %s" % calibration_image_path)
+    calibration_image_path = f"{PATH_TO_IMAGES}/calibrate.jpg" 
+    if CONSOLE_DEBUGGER >= 3: print(f"[INFO] Creating calibration img: {calibration_image_path}" )
     cv2.imwrite( calibration_image_path, image )
     return image
 """
@@ -165,14 +165,14 @@ Reciprocal function curve to give a smaller number for bright light and a bigger
 """
 def get_save_buffer(light):
     save_buffer = int((100/(light - 0.5)) + MIN_SAVE_BUFFER)    
-    if CONSOLE_DEBUGGER >= 3: print("[NOTICE] Save Buffer:  %s" %  save_buffer)
+    if CONSOLE_DEBUGGER >= 3: print(f"[NOTICE] Save Buffer: {save_buffer}")
     return save_buffer
 
 def get_min_area(light):
     if (light > 10):
         light = 10;
     area =int((1000 * math.sqrt(light - 1)) + 100)
-    if CONSOLE_DEBUGGER >= 3: print("[INFO] Main Area:  %s" %  area)
+    if CONSOLE_DEBUGGER >= 3: print(f"[INFO] Main Area: {area}")
     return area
 
 def get_threshold(light):
@@ -185,7 +185,7 @@ def get_threshold(light):
         threshold = 60
     else:
         threshold = THRESHOLD
-    if CONSOLE_DEBUGGER >= 3: print("[INFO] Threahold: %s" %  threshold)
+    if CONSOLE_DEBUGGER >= 3: print(f"[INFO] Threahold: {threshold}")
     return threshold
 
 def store_image_path(cap_time='', sub_dir=''):
@@ -218,10 +218,11 @@ def store_image(cap_time, image, mean_speed, direction):
     cntr_y = int(h * 0.05)
     spd_fnt_sz = 1
     txt_date = cap_time.strftime("%A %d %B %Y %I:%M:%S%p")
-    txt_speed = "%.0f mph" % mean_speed
+    txt_speed = f"{mean_speed:.0f} mph"
     imageFilename_full = store_image_path(cap_time=cap_time)
 
-    if CONSOLE_DEBUGGER >= 2: print("[SAVING] Image:  %s" % imageFilename_full)
+    if CONSOLE_DEBUGGER >= 2: 
+        print_debug(f"[SAVING] Image:  {imageFilename_full}")
 
     cv2.putText(s_image, txt_date,
         (10, s_image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
@@ -236,10 +237,9 @@ def store_image(cap_time, image, mean_speed, direction):
     return imageFilename_full
 
 def store_traffic_data(cap_time, mean_speed, direction, counter, standard_deviation, imageFilename_full=''):
-    if CONSOLE_DEBUGGER >= 2: print("[SAVING] Record: %.0fmph with standard_deviation of %.2f with %s data points" % 
-        (mean_speed, standard_deviation, counter))
-    csvString =  "%s, %s, %s, %s, %s, %s" % \
-        (cap_time.strftime("%Y-%m-%d %H:%M:%S"), mean_speed, direction, counter, standard_deviation, imageFilename_full)
+    if CONSOLE_DEBUGGER >= 2: 
+        print_debug(f"[SAVING] Record: {mean_speed:.0f}mph with standard_deviation of {standard_deviation:.2f} with {counter} data points")
+    csvString = f"{cap_time.strftime('%Y-%m-%d %H:%M:%S')}, {mean_speed}, {direction}, {counter}, {standard_deviation}, {imageFilename_full}"
     record_speed(csvfileout, csvString)
 
     # micsec=int(cap_time.strftime("%f"))/100000
@@ -247,10 +247,10 @@ def store_traffic_data(cap_time, mean_speed, direction, counter, standard_deviat
     datetime_fmt = cap_time.strftime('%Y%m%d-%H%M%S.%f')
     epoch = datetime.datetime.strptime(datetime_fmt, '%Y%m%d-%H%M%S.%f').timestamp() * 1000
     #############
-    the_id = ("%s" % epoch)
-    date = ("%s" % (cap_time.strftime("%Y%m%d")))
-    hour = ("%s" % cap_time.strftime("%H"))
-    minute = ("%s" % cap_time.strftime("%M"))
+    the_id = f"{epoch}" 
+    date = f"{cap_time.strftime('%Y%m%d')}"
+    hour = f"{cap_time.strftime('%H')}" 
+    minute = f"{cap_time.strftime('%M')}" 
     speed_data = (the_id,
                  date, 
                  hour, 
@@ -306,15 +306,24 @@ def overlay_transparent(bgimg, fgimg, xmin = 0, ymin = 0,trans_percent = 1):
     result[ymin:ymin+fgimg.shape[0], xmin:xmin+fgimg.shape[1]] = roi_over
     return result
 
+def print_debug(p):
+    global DBG
+    print(p)
+    if SHOW_IMAGE == 'debug': DBG.append(p)
+
+
+
 if SAVE_CSV:
     csvfileout = CSV_DIR_PATH + "/carspeed_{}.csv".format(datetime.datetime.now().strftime("%Y%m%d_%H%M"))
     record_speed(csvfileout, 'DateTime,Speed,Direction, Counter,SD, Image')
 else:
     csvfileout = ''
+
 #-----------------------------------------
 # Main
 #-----------------------------------------
-def main():        
+def main():
+    global DBG    
     #Initialisation
     state = WAITING
     direction = UNKNOWN
@@ -341,15 +350,16 @@ def main():
     adjusted_min_area = MIN_AREA
     first_pass = True
          
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING] Tracking area:")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   upper_left_x {upper_left_x}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   upper_left_y {upper_left_y}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   lower_right_x {lower_right_x}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   lower_right_y {lower_right_y}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   TARGET_WIDTH {TARGET_WIDTH}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   TARGET_HEIGHT {TARGET_HEIGHT}")
-    if CONSOLE_DEBUGGER >= 2: print(f"[LOADING]   target_area {TARGET_WIDTH * TARGET_HEIGHT}")
-    if CONSOLE_DEBUGGER >= 2: print("[LOADING]   L2R %.3f ft/px & R2L %.3f ft/px " % (l2r_ftperpixel, r2l_ftperpixel))
+    if CONSOLE_DEBUGGER >= 2: 
+        print(f"""[LOADING] Tracking area:")
+[LOADING]   upper_left_x {upper_left_x}
+[LOADING]   upper_left_y {upper_left_y}
+[LOADING]   lower_right_x {lower_right_x}
+[LOADING]   lower_right_y {lower_right_y}
+[LOADING]   TARGET_WIDTH {TARGET_WIDTH}
+[LOADING]   TARGET_HEIGHT {TARGET_HEIGHT}
+[LOADING]   target_area {TARGET_WIDTH * TARGET_HEIGHT}
+[LOADING]   L2R {l2r_ftperpixel:.3f}ft/px & R2L {r2l_ftperpixel:.3f}ft/px""")
 
 
     #---- VideoCapture: TEXT
@@ -383,7 +393,7 @@ def main():
             #Set threshold and min area and save_buffer based on light readings
             lightlevel = my_map(measure_light(hsv),0,256,1,10)
 
-            if CONSOLE_DEBUGGER >= 3: print("[INFO] Light Level: %s" %  lightlevel)
+            if CONSOLE_DEBUGGER >= 3: print(f"[INFO] Light Level: {lightlevel}")
 
             adjusted_min_area = get_min_area(lightlevel)
             adjusted_threshold = get_threshold(lightlevel)
@@ -451,8 +461,10 @@ def main():
                 counter = 0   # use to test later if saving with too few data points    
                 car_gap = secs_diff(initial_time, cap_time) 
 
-                if CONSOLE_DEBUGGER >= 4: print(f"[NOTICE] ~~~ Started: {timestamp} ~~~")
-                if CONSOLE_DEBUGGER >= 1: print("[TRACKING] x-chg    Secs   MPH  x-pos width  BA    Direction  Count time")
+                if CONSOLE_DEBUGGER >= 4:
+                    print_debug(f"[NOTICE] ~~~ Started: {timestamp} ~~~")
+                if CONSOLE_DEBUGGER >= 1: 
+                    print_debug("[TRACKING] x-chg    Secs   MPH  x-pos width  BA    Direction  Count time")
 
 
                 if SHOW_IMAGE == 'debug': 
@@ -461,6 +473,7 @@ def main():
                 if (car_gap<TOO_CLOSE):   
                     state = WAITING
                     if CONSOLE_DEBUGGER >= 4: print("[NOTICE] Too Close")
+                    DBG = []
             else: # compute the lapsed time
                 secs = secs_diff(timestamp,initial_time)
                 if secs >= 3: # Object taking too long to move across
@@ -471,6 +484,7 @@ def main():
                     biggest_area = 0
                     base_image = None
                     if CONSOLE_DEBUGGER >= 4: print("[NOTICE] ~~~ Resetting ~~~")
+                    DBG = []
                     continue             
 
                 if state == TRACKING:       
@@ -488,7 +502,7 @@ def main():
                     speeds = np.append(speeds, mph)   #Append speed to array
 
                     if mph < 0:
-                        if CONSOLE_DEBUGGER >= 3: print("[INFO] Negative speed - stopping tracking"+ "{0:7.2f}".format(secs))
+                        if CONSOLE_DEBUGGER >= 3: print(f"[INFO] Negative speed - stopping tracking {secs:7.2f}")
                         if direction == LEFT_TO_RIGHT:
                             direction = RIGHT_TO_LEFT  #Reset correct direction
                             x=1  #Force save
@@ -496,15 +510,17 @@ def main():
                             direction = LEFT_TO_RIGHT  #Reset correct direction
                             x=TARGET_WIDTH + MIN_SAVE_BUFFER  #Force save
                     else:
-                        if CONSOLE_DEBUGGER >= 1: print("[TRACKING] %4d  %7.2f  %3.0f  %4d  %5d %6d  %3s  %2d   %s" %
-                            (abs_chg, secs, mph, x, w, biggest_area, direction, counter, timestamp.strftime("%H:%M:%S-%f")))
+                        if CONSOLE_DEBUGGER >= 1: 
+                            # print("[TRACKING] %4d  %7.2f  %3.0f  %4d  %5d %6d  %3s  %2d   %s" %
+                            # (abs_chg, secs, mph, x, w, biggest_area, direction, counter, timestamp.strftime("%H:%M:%S-%f")))
+                            print_debug(f"[TRACKING] {abs_chg:4d} {secs:7.2f} {mph:3.0f} {x:4d} {w:5d} {biggest_area:6d} {direction:3s} {counter:3d} {timestamp.strftime('%H:%M:%S-%f')}")
 
                         if SHOW_IMAGE == 'debug': 
                             if "x" in locals(): 
                                 color = list(np.random.random(size=3) * 256)
                                 cv2.rectangle(backtorgb, (x,y), (x+w,y+h), color, 2)
                                 cv2.circle(backtorgb, (x+int(w/2), y+int(h/2)), 5, color, -3)
-                                cv2.putText(backtorgb,f'{x}',(x,y-4), cv2.FONT_HERSHEY_SIMPLEX, .3,(0,255,0),1,cv2.LINE_AA)
+                                cv2.putText(backtorgb,f'{len(DBG)-2}',(x,y-4), cv2.FONT_HERSHEY_SIMPLEX, .3,color,1,cv2.LINE_AA)
                             # cv2.imshow("frameDelta", backtorgb)
 
                     real_y = upper_left_y + y
@@ -528,7 +544,8 @@ def main():
                             mean_speed = 0 #ignore it 
                             sd = 0
 
-                        if CONSOLE_DEBUGGER >= 1: print("[DATA] mean_speed: %.0f sd: %.0f" % (mean_speed, sd))
+                        if CONSOLE_DEBUGGER >= 1: 
+                            print_debug(f"[DATA] mean_speed: {mean_speed:.0f} sd: {sd:.0f}")
 
                         #Captime used for mqtt, csv, image filename. 
                         cap_time = datetime.datetime.now()                    
@@ -542,7 +559,8 @@ def main():
                             cap_time = datetime.datetime.now() 
                             imageFilename_full = store_image_path(cap_time, sub_dir='/debug')
                             # imageFilename_full = PATH_TO_IMAGES + '/debug'
-                            if CONSOLE_DEBUGGER >= 2: print("[SAVING] DEBUG Image:  %s" % imageFilename_full)
+                            if CONSOLE_DEBUGGER >= 2: 
+                                print_debug(f"[SAVING] DEBUG Image:  {imageFilename_full}")
                             if direction == LEFT_TO_RIGHT:
                                 arrrow_coords = (15, 15), (60, 15)
                             else:
@@ -558,17 +576,20 @@ def main():
                             # output = stream.read()
                             # print(fxxxxxxxxx {output} xxxxxxxxx")
                             with open(f'{imageFilename_full}.log', 'w') as f:
-                                brack_o = '{'
-                                brack_c = '}'
-                                print(f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}')
-                                process = subprocess.Popen(['sed', '-n',  f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}', f"{LOG_FILE}"], stdout=subprocess.PIPE)
-                                process.wait()
-                                resultOfSubProcess, errorsOfSubProcess = process.communicate()
-                                f.write(resultOfSubProcess.decode("utf-8"))
+                                # brack_o = '{'
+                                # brack_c = '}'
+                                # print(f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}')
+                                # process = subprocess.Popen(['sed', '-n',  f'/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}', f"{LOG_FILE}"], stdout=subprocess.PIPE)
+                                # process.wait()
+                                # resultOfSubProcess, errorsOfSubProcess = process.communicate()
+                                # f.write(resultOfSubProcess.decode("utf-8"))
+
                                 # process = subprocess.check_output(['sed', '-n',  f"/{initial_time}/,/{last_d[0]}/{brack_o}p;/{last_d[0]}/q{brack_c}", f"{LOG_FILE}"])
                                 # f.write( process.decode("utf-8") )
-                                
-                                # process = subprocess.Popen(['sed',  f"/.*{initial_time}/,/{last_d[0]}/!d;//d", f"{LOG_FILE}"], stdout=f)
+
+                                f.write( "\n".join(DBG) )
+                                DBG = []
+
 
                         counter = 0
                         state = SAVING #debug                    
@@ -592,7 +613,7 @@ def main():
                     mean_speed = 0 
                     sd = 0
 
-                if CONSOLE_DEBUGGER >= 1: print("[DATA] mean_speed: %.0f sd: %.0f" % (mean_speed, sd))
+                if CONSOLE_DEBUGGER >= 1: print(f"[DATA] mean_speed: {mean_speed:.0f} sd: {sd:.0f}")
 
                 cap_time = datetime.datetime.now()
                 
@@ -604,13 +625,15 @@ def main():
 
                 if SHOW_IMAGE == 'debug': del backtorgb
 
+                DBG = []
+
 
             if state != WAITING:
                 state = WAITING
                 direction = UNKNOWN
                 text_on_image = 'Waiting for another car'
                 counter = 0
-                if CONSOLE_DEBUGGER >= 3: print("[INFO] %s" % text_on_image)
+                if CONSOLE_DEBUGGER >= 3: print(f"[INFO] {text_on_image}")
                 
         # only update image and wait for a keypress when waiting for a car
         # This is required since waitkey slows processing.
@@ -624,7 +647,7 @@ def main():
                     t1 = time.process_time()
                     lightlevel = my_map(measure_light(hsv),0,256,1,10)
 
-                    if CONSOLE_DEBUGGER >= 3: print("[INFO] Light Level = " + str(lightlevel))
+                    if CONSOLE_DEBUGGER >= 3: print(f"[INFO] Light Level = {lightlevel}")
 
                     adjusted_min_area = get_min_area(lightlevel)
                     adjusted_threshold = get_threshold(lightlevel)
@@ -646,7 +669,7 @@ def main():
                 #---- VideoCapture: TEXT
                 cap.release()
                 calibration_image(image)
-                print("[EXIT] Quit at %s" % datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"))
+                print(f"[EXIT] Quit at {datetime.datetime.now().strftime('%A %d %B %Y %I:%M:%S%p')}")
                 break
 
              
