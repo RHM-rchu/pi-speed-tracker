@@ -369,6 +369,7 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,RESOLUTION[0])
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,RESOLUTION[1])
     cap.set(cv2.CAP_PROP_FPS, FPS)
+    time.sleep(.4)
     while(cap.isOpened()):
         _, image = cap.read()
         imageShow = image.copy()
@@ -384,9 +385,17 @@ def main():
         gray = cv2.GaussianBlur(gray, BLURSIZE, 0)
      
         # if the base image has not been defined, initialize it
-        if base_image is None:
-            base_image = gray.copy().astype("float")
-        #     if SHOW_IMAGE == 'on': cv2.imshow("Speed Camera", image)
+        try:
+            if base_image is None:
+                base_image = gray.copy().astype("float")
+            #     if SHOW_IMAGE == 'on': cv2.imshow("Speed Camera", image)
+        except OSError as err:
+            print(f"OS error: {err}")
+        # except ValueError:
+        #     print("Could not copy image")
+        except:
+            print(f"Unexpected error: {sys.exc_info()[0]}")
+            raise
       
 
         if lightlevel == 0:   #First pass through only
@@ -428,7 +437,7 @@ def main():
                 timestamp = datetime.datetime.now()
 
         if SHOW_IMAGE == 'on': 
-            if "x" in locals(): cv2.rectangle(imageShow, (x,y), (x+w,y+h), (255, 0, 0), 2)
+            if motion_found == True: cv2.rectangle(imageShow, (x,y), (x+w,y+h), (255, 0, 0), 2)
             # # draw the text and timestamp on the frame
             # cv2.putText(image, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
             #     (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 1)
@@ -437,6 +446,7 @@ def main():
             #     #define the monitored area right and left boundary
             #     cv2.line(image,(upper_left_x,upper_left_y),(upper_left_x,lower_right_y),(0, 255, 0))
             #     cv2.line(image,(lower_right_x,upper_left_y),(lower_right_x,lower_right_y),(0, 255, 0))
+
             cv2.imshow("Speed Camera", imageShow)
 
      

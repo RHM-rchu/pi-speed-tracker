@@ -62,17 +62,12 @@ $(".debugger").click(function() {
         },
         success: function(result) {
             console.log('ok');
-            // console.log(result);
-            // console.log("mouseenter:" + img_lookup)
-            let pathParts = 'car_at_20210315_130052'.match(/_([0-9]{4})([0-9]{2})([0-9]{2})_/) 
+            let thePreviewImage = [];
+            thePreviewImage = result.match(/\[SAVING\] Image\:  (media\/images\/.*.jpg)/);
+            (  thePreviewImage !== null ) ? img='<img src="' + thePreviewImage[1] + '">\n\n' : img='';
             $(".debugger_right").html(
                 img_lookup + "\n\n" 
-                + '<img src="media/images/'
-                + pathParts[1]
-                + '/' + pathParts[2]
-                + '/' + pathParts[3]
-                + '/' + img_lookup_orig
-                + '">\n\n'
+                + img
                 + result
                 );
             // $(".debugger_right").contents()[0].data = img_lookup + "\n\n" + result;
