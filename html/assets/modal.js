@@ -19,11 +19,18 @@ $(document).ready(function() {
         var nextObj = $('a[data-id="' + myImageId + '"]').closest('tr').next('tr').find("a");
         var next_img = nextObj.attr('data-id');
         var next_txt = nextObj.attr('alt');
+        // hack bc sometime cars are so close together they have the same img names. need to address in app
+        if (next_img === myImageId ) {
+            console.log(`two images named ${next_img} found, advaancing by 2 cells`)
+            var nextTR = $('a[data-id="' + myImageId + '"]').closest('tr').nextAll('tr')[1];
+            var nextObj = $(nextTR).find("a");
+            var next_img = nextObj.attr('data-id');
+            var next_txt = nextObj.attr('alt');
+        }
         if(next_img == undefined) {
             return null
-        }
+        } 
         // var next_row = $('a[data-id="' + myImageId + '"]').closest('tr').index();
-        // console.log(next_row)
         $("#myImage").attr("src", next_img);
         document.getElementById('modal_caption').innerHTML = next_txt
 

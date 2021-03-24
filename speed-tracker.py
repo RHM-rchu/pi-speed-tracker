@@ -19,9 +19,9 @@ os.makedirs(logfile_base, exist_ok=True)
 os.makedirs(CSV_DIR_PATH, exist_ok=True)
 os.makedirs(PATH_TO_IMAGES, exist_ok=True)
 logfile = open(LOG_FILE,'w', 1)
-sys.stdout = logfile
-sys.stdin = logfile
-sys.stderr = logfile
+# sys.stdout = logfile
+# sys.stdin = logfile
+# sys.stderr = logfile
 
 ##### temp delete soon
 if os.path.isfile('_configs_coords.py') == True:
